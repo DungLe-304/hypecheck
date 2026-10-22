@@ -1,0 +1,401 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#EEF1F6">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="HypeCheck">
+<meta name="description" content="HypeCheck concept mock-up: see how viral products hold up 30 days after the hype.">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}</style>
+<title>HypeCheck</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700&family=Instrument+Sans:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: one phone-width app screen, centered on larger displays.
+   Deliberately single light theme so the phone reads the same on camera. */
+:root {
+  --paper: #EEF1F6;
+  --card: #FFFFFF;
+  --ink: #151826;
+  --muted: #5B6073;
+  --line: #DCE0EA;
+  --hype: #F0266F;
+  --hype-soft: #FFE3EE;
+  --real: #0B8A80;
+  --real-soft: #DDF3F0;
+  --flag: #B4480E;
+  --flag-soft: #FFF0E3;
+  --display: "Unbounded", "Arial Black", system-ui, sans-serif;
+  --body: "Instrument Sans", "Helvetica Neue", Arial, system-ui, sans-serif;
+  color-scheme: light;
+}
+* { box-sizing: border-box; }
+html, body { background: var(--paper); }
+body {
+  margin: 0;
+  color: var(--ink);
+  font-family: var(--body);
+  font-size: 15px;
+  line-height: 1.45;
+  -webkit-font-smoothing: antialiased;
+}
+.app {
+  max-width: 430px;
+  margin: 0 auto;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 12px 104px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+button { font: inherit; color: inherit; cursor: pointer; }
+:focus-visible { outline: 3px solid var(--ink); outline-offset: 2px; border-radius: 10px; }
+
+/* Top bar */
+.top { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.brand {
+  display: flex; align-items: center; gap: 8px;
+  background: none; border: 0; padding: 4px 0;
+  font-family: var(--display); font-weight: 700; font-size: 20px; letter-spacing: -0.02em;
+}
+.brand svg { width: 30px; height: 30px; flex: none; }
+.avatar {
+  width: 34px; height: 34px; border-radius: 50%;
+  background: var(--ink); color: var(--card);
+  display: grid; place-items: center; font-weight: 600; font-size: 13px;
+}
+.search {
+  display: flex; align-items: center; gap: 10px;
+  background: var(--card); border: 1px solid var(--line); border-radius: 14px;
+  padding: 11px 14px; color: var(--muted);
+}
+.search svg { width: 18px; height: 18px; flex: none; }
+.search span { color: var(--ink); font-weight: 500; }
+
+/* Product */
+.product { display: flex; gap: 14px; align-items: center; }
+.thumb {
+  width: 64px; height: 64px; border-radius: 16px; flex: none;
+  background: linear-gradient(160deg, #FFD6E6, #FFC2D9 55%, #F7A8C6);
+  display: grid; place-items: center;
+}
+.thumb svg { width: 30px; height: 44px; }
+.product h1 { margin: 0; font-family: var(--display); font-weight: 500; font-size: 19px; line-height: 1.2; letter-spacing: -0.01em; text-wrap: balance; }
+.product p { margin: 3px 0 0; color: var(--muted); font-size: 13.5px; }
+.trend { color: var(--hype); font-weight: 600; }
+
+/* Score card: the one memorable moment */
+.score {
+  background: var(--card); border-radius: 26px; padding: 18px 18px 20px;
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+  box-shadow: 0 1px 0 var(--line), 0 18px 40px -26px rgba(21, 24, 38, 0.35);
+  --tone: var(--hype); --tone-soft: var(--hype-soft);
+  transition: --tone 0.6s;
+}
+.score.is-real { --tone: var(--real); --tone-soft: var(--real-soft); }
+.score-label {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-weight: 600; font-size: 14px; color: var(--tone);
+  background: var(--tone-soft); padding: 5px 12px; border-radius: 999px;
+  transition: color 0.6s, background-color 0.6s;
+}
+.gauge { position: relative; width: 236px; max-width: 100%; aspect-ratio: 1 / 0.86; }
+.gauge svg { width: 100%; height: 100%; display: block; overflow: visible; }
+.gauge .track { stroke: var(--line); }
+.gauge .bar { stroke: var(--tone); transition: stroke-dasharray 1.3s cubic-bezier(.6, 0, .2, 1), stroke 0.6s; }
+.gauge .ghost { stroke: var(--hype); opacity: 0; transition: opacity 0.4s 0.9s; }
+.score.is-real .gauge .ghost { opacity: 0.22; }
+.gauge-num {
+  position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  padding-top: 10px;
+}
+.num {
+  font-family: var(--display); font-weight: 700; font-size: 78px; line-height: 1;
+  letter-spacing: -0.04em; color: var(--tone); font-variant-numeric: tabular-nums;
+  transition: color 0.6s;
+}
+.out { color: var(--muted); font-size: 14px; margin-top: 4px; }
+.was {
+  font-size: 13px; color: var(--hype); font-weight: 600; margin-top: 2px;
+  opacity: 0; transition: opacity 0.4s 1s;
+}
+.score.is-real .was { opacity: 1; }
+.verdict { text-align: center; max-width: 30ch; margin: 2px 0 12px; font-size: 15.5px; text-wrap: balance; }
+.verdict strong { color: var(--tone); }
+.reveal {
+  width: 100%; border: 0; border-radius: 16px; padding: 15px 18px;
+  background: var(--ink); color: var(--card);
+  font-weight: 600; font-size: 16px;
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+}
+.reveal svg { width: 18px; height: 18px; }
+.score.is-real .reveal { background: var(--card); color: var(--muted); border: 1px solid var(--line); font-weight: 500; font-size: 14px; padding: 11px 16px; }
+
+/* Stat row */
+.stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.stat { background: var(--card); border-radius: 16px; padding: 12px 10px; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.stat b { font-family: var(--display); font-weight: 500; font-size: 20px; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+.stat span { font-size: 12.5px; color: var(--muted); line-height: 1.3; }
+.stat .bad { color: var(--hype); }
+.stat .good { color: var(--real); }
+
+/* Section */
+.panel { background: var(--card); border-radius: 20px; padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+.panel h2 { margin: 0; font-size: 16px; font-weight: 700; }
+.panel .sub { margin: -8px 0 0; color: var(--muted); font-size: 13px; }
+.chart svg { width: 100%; height: auto; display: block; }
+.chart text { font-family: var(--body); font-size: 11px; fill: var(--muted); }
+.legend { display: flex; flex-wrap: wrap; gap: 14px; font-size: 12.5px; color: var(--muted); }
+.legend i { display: inline-block; width: 16px; height: 3px; border-radius: 2px; vertical-align: middle; margin-right: 6px; }
+
+/* Flag */
+.flag { display: flex; gap: 12px; align-items: flex-start; background: var(--flag-soft); color: var(--flag); border-radius: 16px; padding: 13px 14px; font-size: 14px; }
+.flag svg { width: 20px; height: 20px; flex: none; margin-top: 1px; }
+.flag p { margin: 0; color: var(--ink); }
+.flag b { color: var(--flag); }
+
+/* Reviews */
+.review { display: flex; flex-direction: column; gap: 6px; padding-top: 12px; border-top: 1px solid var(--line); }
+.review:first-of-type { border-top: 0; padding-top: 0; }
+.who { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 13px; }
+.who strong { font-size: 14px; }
+.chip { font-size: 12px; font-weight: 600; padding: 3px 9px; border-radius: 999px; }
+.chip.day { background: var(--paper); color: var(--ink); }
+.chip.ok { background: var(--real-soft); color: var(--real); display: inline-flex; gap: 4px; align-items: center; }
+.chip.ok svg { width: 12px; height: 12px; }
+.rating { margin-left: auto; font-weight: 700; font-variant-numeric: tabular-nums; }
+.review p { margin: 0; }
+
+.buy {
+  display: flex; justify-content: space-between; align-items: center; gap: 12px;
+  border: 1px solid var(--line); border-radius: 16px; padding: 12px 14px; background: var(--card);
+}
+.buy p { margin: 0; font-size: 13px; color: var(--muted); }
+.buy strong { display: block; color: var(--ink); font-size: 15px; }
+.buy span { font-weight: 600; font-size: 14px; padding: 9px 14px; border-radius: 12px; background: var(--paper); flex: none; }
+
+.footnote { color: var(--muted); font-size: 12px; text-align: center; margin: 4px 0 0; }
+
+/* Tab bar */
+.tabs {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 5;
+  background: rgba(255, 255, 255, 0.94); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+  border-top: 1px solid var(--line);
+  padding: 8px max(16px, env(safe-area-inset-right, 0px)) calc(8px + env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px));
+}
+.tabs nav { max-width: 430px; margin: 0 auto; display: grid; grid-template-columns: repeat(4, 1fr); }
+.tabs a { display: flex; flex-direction: column; align-items: center; gap: 3px; font-size: 11.5px; color: var(--muted); text-decoration: none; padding: 4px 0; }
+.tabs a svg { width: 22px; height: 22px; }
+.tabs a[aria-current] { color: var(--ink); font-weight: 600; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition-duration: 0.01ms !important; transition-delay: 0s !important; }
+}
+</style>
+</head>
+<body>
+
+
+<main class="app">
+  <header class="top">
+    <button class="brand" id="brand" type="button" aria-label="HypeCheck home. Double-tap to reset the demo.">
+      <svg viewBox="0 0 32 32" aria-hidden="true">
+        <rect width="32" height="32" rx="9" fill="#151826"/>
+        <path d="M16 5c1.2 3.6 5.5 5.8 5.5 11a5.5 5.5 0 0 1-11 0c0-2.6 1.4-4 2.4-5.2.2 1.7 1 2.7 2.2 3.1C14.6 11 15 7.8 16 5Z" fill="#F0266F"/>
+        <path d="m11.5 21.5 3.2 3.2 6.8-7" fill="none" stroke="#FFFFFF" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      HypeCheck
+    </button>
+    <div class="avatar" aria-hidden="true">NL</div>
+  </header>
+
+  <div class="search" role="search">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+    <span>GlowDrop Dew Serum</span>
+  </div>
+
+  <section class="product" aria-label="Product">
+    <div class="thumb" aria-hidden="true">
+      <svg viewBox="0 0 30 44"><rect x="10" y="1" width="10" height="9" rx="2" fill="#151826"/><rect x="4" y="10" width="22" height="33" rx="7" fill="#FFFFFF" opacity=".92"/><rect x="8" y="22" width="14" height="3" rx="1.5" fill="#F0266F"/></svg>
+    </div>
+    <div>
+      <h1>GlowDrop Dew Serum</h1>
+      <p><span class="trend">Trending on TikTok</span>, 4.1M views this week</p>
+    </div>
+  </section>
+
+  <section class="score" id="score" aria-live="polite">
+    <div class="score-label" id="label">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2c1.5 4.5 7 7 7 13a7 7 0 0 1-14 0c0-3.3 1.8-5.1 3-6.6.3 2.2 1.3 3.4 2.8 4C10.3 9 11 5.2 12 2Z"/></svg>
+      <span id="labelText">Hype Score</span>
+    </div>
+    <div class="gauge">
+      <svg viewBox="0 0 220 190" aria-hidden="true">
+        <g transform="rotate(135 110 110)" fill="none" stroke-width="16" stroke-linecap="round">
+          <circle class="track" cx="110" cy="110" r="88" id="track"/>
+          <circle class="ghost" cx="110" cy="110" r="88" id="ghost"/>
+          <circle class="bar" cx="110" cy="110" r="88" id="bar"/>
+        </g>
+      </svg>
+      <div class="gauge-num">
+        <div class="num" id="num">9.2</div>
+        <div class="out">out of 10</div>
+        <div class="was">Hype was 9.2</div>
+      </div>
+    </div>
+    <p class="verdict" id="verdict">Everyone is posting about it. How does it hold up after the hype?</p>
+    <button class="reveal" id="reveal" type="button">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h12l4 5-4 5H4z"/></svg>
+      <span id="revealText">Check the reality</span>
+    </button>
+  </section>
+
+  <section class="stats" aria-label="Key numbers">
+    <div class="stat"><b class="bad">41%</b><span>regret it after 30 days</span></div>
+    <div class="stat"><b>1,284</b><span>verified buyers</span></div>
+    <div class="stat"><b class="good">100%</b><span>reviews with a receipt</span></div>
+  </section>
+
+  <section class="panel chart" aria-label="Rating over time">
+    <h2>Rating over time</h2>
+    <p class="sub">Verified buyers rate it again at day 30 and day 90.</p>
+    <svg viewBox="0 0 320 150" role="img" aria-label="Hype stays at 9.2. Verified rating falls from 8.7 on day 1 to 5.8 on day 30 and 5.1 on day 90.">
+      <g stroke="#DCE0EA" stroke-width="1">
+        <line x1="34" y1="16" x2="306" y2="16"/>
+        <line x1="34" y1="54" x2="306" y2="54"/>
+        <line x1="34" y1="92" x2="306" y2="92"/>
+        <line x1="34" y1="130" x2="306" y2="130"/>
+      </g>
+      <text x="26" y="20" text-anchor="end">10</text>
+      <text x="26" y="58" text-anchor="end">7.5</text>
+      <text x="26" y="96" text-anchor="end">5</text>
+      <text x="26" y="134" text-anchor="end">2.5</text>
+      <!-- y = 16 + (10 - v) * 15.2 ; x: day1=50, day7=110, day30=200, day90=290 -->
+      <polyline points="50,28.2 290,28.2" fill="none" stroke="#F0266F" stroke-width="2.5" stroke-dasharray="6 6"/>
+      <path d="M50,35.8 L110,47.9 L200,79.8 L290,90.5 L290,130 L50,130 Z" fill="#0B8A80" opacity="0.08"/>
+      <polyline points="50,35.8 110,47.9 200,79.8 290,90.5" fill="none" stroke="#0B8A80" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
+      <circle cx="50" cy="35.8" r="4" fill="#0B8A80"/>
+      <circle cx="110" cy="47.9" r="4" fill="#0B8A80"/>
+      <circle cx="200" cy="79.8" r="5.5" fill="#FFFFFF" stroke="#0B8A80" stroke-width="3"/>
+      <circle cx="290" cy="90.5" r="4" fill="#0B8A80"/>
+      <text x="200" y="70" text-anchor="middle" style="fill:#0B8A80;font-weight:700;font-size:12px">5.8</text>
+      <text x="290" y="81" text-anchor="middle" style="fill:#0B8A80;font-weight:700;font-size:12px">5.1</text>
+      <text x="50" y="146" text-anchor="middle">Day 1</text>
+      <text x="110" y="146" text-anchor="middle">Day 7</text>
+      <text x="200" y="146" text-anchor="middle">Day 30</text>
+      <text x="290" y="146" text-anchor="middle">Day 90</text>
+    </svg>
+    <div class="legend">
+      <span><i style="background:#F0266F"></i>Hype on social media</span>
+      <span><i style="background:#0B8A80"></i>Verified buyer rating</span>
+    </div>
+  </section>
+
+  <div class="flag" role="note">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 21V4h11l-1 4h6v9H9l1-4H4"/></svg>
+    <p><b>7 of the top 10 TikTok reviews</b> show signs of paid promotion without a disclosure.</p>
+  </div>
+
+  <section class="panel" aria-label="Verified reviews">
+    <h2>What buyers say later</h2>
+    <article class="review">
+      <div class="who"><strong>Maya R.</strong><span class="chip day">Day 30</span><span class="chip ok"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12 5 5 9-10"/></svg>Receipt verified</span><span class="rating">5/10</span></div>
+      <p>Looked amazing in every video. On my skin it pills under makeup, and the glow is gone by noon.</p>
+    </article>
+    <article class="review">
+      <div class="who"><strong>Jordan K.</strong><span class="chip day">Day 90</span><span class="chip ok"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12 5 5 9-10"/></svg>Receipt verified</span><span class="rating">4/10</span></div>
+      <p>Half the bottle is left and I stopped using it after week three. A $12 drugstore serum works the same for me.</p>
+    </article>
+  </section>
+
+  <div class="buy">
+    <p><strong>Still want it?</strong>Compare prices from 4 stores</p>
+    <span>See prices</span>
+  </div>
+
+  <p class="footnote">Concept mock-up for Bulldog B.I.T.E. 2026. Product, people and numbers are illustrative.</p>
+</main>
+
+<div class="tabs">
+  <nav aria-label="App sections">
+    <a href="#" aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>Check</a>
+    <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3c1.5 4.5 7 7 7 12a7 7 0 0 1-14 0c0-3 1.8-5 3-6.4.3 2.2 1.3 3.4 2.8 4C10.3 9 11 5.6 12 3Z"/></svg>Trending</a>
+    <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"/><path d="M9 8h6M9 12h6"/></svg>My receipts</a>
+    <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg>Profile</a>
+  </nav>
+</div>
+
+<script>
+(function () {
+  var HYPE = 9.2, REAL = 5.8;
+  var C = 2 * Math.PI * 88;       // full circumference
+  var ARC = C * 0.75;             // 270-degree gauge
+  var score = document.getElementById('score');
+  var bar = document.getElementById('bar');
+  var ghost = document.getElementById('ghost');
+  var track = document.getElementById('track');
+  var num = document.getElementById('num');
+  var labelText = document.getElementById('labelText');
+  var verdict = document.getElementById('verdict');
+  var revealText = document.getElementById('revealText');
+  var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var shown = false, raf = 0;
+
+  function dash(v) { return (ARC * v / 10) + ' ' + C; }
+  track.setAttribute('stroke-dasharray', ARC + ' ' + C);
+  ghost.setAttribute('stroke-dasharray', dash(HYPE));
+  bar.setAttribute('stroke-dasharray', dash(HYPE));
+
+  function countTo(from, to, ms) {
+    cancelAnimationFrame(raf);
+    if (reduce) { num.textContent = to.toFixed(1); return; }
+    var t0 = performance.now();
+    function step(t) {
+      var p = Math.min(1, (t - t0) / ms);
+      var e = p < 0.5 ? 2 * p * p : 1 - Math.pow(-2 * p + 2, 2) / 2;
+      num.textContent = (from + (to - from) * e).toFixed(1);
+      if (p < 1) raf = requestAnimationFrame(step);
+    }
+    raf = requestAnimationFrame(step);
+  }
+
+  function showReality() {
+    shown = true;
+    score.classList.add('is-real');
+    bar.setAttribute('stroke-dasharray', dash(REAL));
+    countTo(HYPE, REAL, 1300);
+    labelText.textContent = 'Reality after 30 days';
+    verdict.innerHTML = '<strong>41% of verified buyers</strong> regret it after 30 days.';
+    revealText.textContent = 'Show the hype again';
+  }
+
+  function showHype() {
+    shown = false;
+    score.classList.remove('is-real');
+    bar.setAttribute('stroke-dasharray', dash(HYPE));
+    countTo(num.textContent * 1 || REAL, HYPE, 700);
+    labelText.textContent = 'Hype Score';
+    verdict.textContent = 'Everyone is posting about it. How does it hold up after the hype?';
+    revealText.textContent = 'Check the reality';
+  }
+
+  document.getElementById('reveal').addEventListener('click', function () {
+    shown ? showHype() : showReality();
+  });
+  // Double-tap the logo to reset between takes.
+  document.getElementById('brand').addEventListener('dblclick', showHype);
+  document.querySelectorAll('.tabs a').forEach(function (a) {
+    a.addEventListener('click', function (e) { e.preventDefault(); });
+  });
+})();
+</script>
+
+</body>
+</html>
