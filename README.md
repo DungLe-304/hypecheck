@@ -2,30 +2,36 @@
 
 Concept mock-up of the HypeCheck app for Truman State's Bulldog B.I.T.E. 2026 pitch competition.
 
-HypeCheck compares a product's **Hype Score** (social media buzz) with its **Reality Score** (ratings from receipt-verified buyers 30 and 90 days after purchase).
+On top of the Hype Score vs Reality Score, the mock-up shows three ideas:
 
-> Product, people and numbers on this page are illustrative.
+1. **Check straight from the video**: the demo opens on a viral video; Share → HypeCheck finds the product.
+2. **Owner Threads**: receipt-verified owners post on day 1, then update the *same* thread on day 30 and day 90. No followers, no likes.
+3. **Wait 48 hours**: a cooling-off Wait List that fights FOMO and tracks money saved.
 
-## Demo
+Plus the **Hype Half-Life** metric: days until buyers' rating loses half of its total drop (18 days in the demo).
 
-- Tap **Check the reality** to drop the Hype Score (9.2) to the 30-day Reality Score (5.8).
-- Tap **Show the hype again**, or double-tap the HypeCheck logo, to reset between takes.
-- For a full-screen, app-like view on a phone: open the page in Safari, tap **Share → Add to Home Screen**, then launch it from the home-screen icon.
+> Products, people and numbers on this page are illustrative.
+
+## Demo script (about 60 seconds)
+
+1. Video screen: tap **Share**, then **HypeCheck**. Three check steps tick off.
+2. Check tab: tap **Check the reality** (9.2 → 5.8). Scroll: hype gap chart, Half-Life, ad flag, an Owner Thread, dupes.
+3. Tap **Wait 48 hours**. The Wait List tab gets a badge.
+4. Threads tab: show a thread chain; try the **Sensitive** or **Dry skin** filters.
+5. Wait List tab: tap **Skip it** on the lamp. Saved goes from $39 to $73.
+6. **Double-tap the HypeCheck logo** to reset everything for the next take.
+
+For a full-screen view on a phone: open in Safari → Share → Add to Home Screen.
 
 ## Files
 
 | File | Purpose |
 |---|---|
-| `index.html` | The whole app screen (HTML, CSS and JS in one file) |
+| `index.html` | The whole app (HTML, CSS and JS in one file) |
 | `icon.svg` | Browser tab icon |
 | `apple-touch-icon.png` | Home-screen icon on iOS |
 
-## Deploy with GitHub Pages
-
-1. Push these files to the root of the `main` branch.
-2. In the repository, open **Settings → Pages**.
-3. Under **Build and deployment**, choose **Deploy from a branch**, branch `main`, folder `/ (root)`, then **Save**.
-4. The site goes live at `https://<username>.github.io/<repo>/` within a minute or two.
+Deploys to GitHub Pages: push these files to the root of `main`, then Settings → Pages → Deploy from a branch (`main`, `/ (root)`).
 
 ## Team
 

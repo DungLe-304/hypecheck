@@ -3,361 +3,874 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#FFFFFF">
+<meta name="theme-color" content="#EEF1F6">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="HypeCheck">
-<meta name="description" content="HypeCheck concept mock-up: see how viral products hold up 30 days after the hype.">
+<meta name="description" content="HypeCheck concept mock-up v2: check a viral product straight from the video, read Owner Threads, and wait 48 hours before you buy.">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
-<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}</style>
 <title>HypeCheck</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700&family=Instrument+Sans:wght@400;500;600;700&display=swap">
 <style>
-/* Layout: image-first "closeup" of one product, then a two-column masonry feed.
-   Inspired by Pinterest's pin view. Single light theme so the phone reads the same on camera. */
+/* Single light theme on purpose: the phone should read the same on camera and on stage. */
 :root {
-  --bg: #FFFFFF;
-  --ink: #1D1C21;
-  --muted: #6E6B76;
-  --soft: #F1F0F2;
-  --line: #E6E4E9;
-  --hype: #E3195B;
-  --hype-soft: #FDE7EE;
-  --real: #0C8478;
-  --real-soft: #DFF2EF;
-  --flag: #A8480F;
-  --flag-soft: #FFF1E5;
-  --font: "Figtree", "Helvetica Neue", Arial, system-ui, sans-serif;
+  --paper: #EEF1F6;
+  --card: #FFFFFF;
+  --ink: #151826;
+  --muted: #5B6073;
+  --line: #DCE0EA;
+  --hype: #F0266F;
+  --hype-soft: #FFE3EE;
+  --real: #0B8A80;
+  --real-soft: #DDF3F0;
+  --flag: #B4480E;
+  --flag-soft: #FFF0E3;
+  --display: "Unbounded", "Arial Black", system-ui, sans-serif;
+  --body: "Instrument Sans", "Helvetica Neue", Arial, system-ui, sans-serif;
   color-scheme: light;
 }
 * { box-sizing: border-box; }
-html, body { background: var(--bg); }
-body { margin: 0; color: var(--ink); font-family: var(--font); font-size: 15px; line-height: 1.45; -webkit-font-smoothing: antialiased; }
-button { font: inherit; color: inherit; cursor: pointer; border: 0; background: none; padding: 0; }
-:focus-visible { outline: 3px solid #4A90E2; outline-offset: 2px; border-radius: 12px; }
+html, body { background: var(--paper); }
+body {
+  margin: 0; color: var(--ink); font-family: var(--body);
+  font-size: 15px; line-height: 1.45; -webkit-font-smoothing: antialiased;
+}
+body.locked { overflow: hidden; }
+button { font: inherit; color: inherit; cursor: pointer; }
+:focus-visible { outline: 3px solid var(--ink); outline-offset: 2px; border-radius: 10px; }
+[hidden] { display: none !important; }
 
 .app {
   max-width: 430px; margin: 0 auto;
-  padding-left: max(12px, env(safe-area-inset-left, 0px));
-  padding-right: max(12px, env(safe-area-inset-right, 0px));
-  padding-block: 8px 96px;
-  display: flex; flex-direction: column; gap: 16px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-top: calc(12px + env(safe-area-inset-top, 0px));
+  padding-bottom: calc(96px + env(safe-area-inset-bottom, 0px));
 }
-@media (min-width: 380px) { .app { padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); } }
+.view { display: flex; flex-direction: column; gap: 14px; }
 
-/* Search */
-.top { display: flex; align-items: center; gap: 10px; }
-.search { flex: 1; min-width: 0; display: flex; align-items: center; gap: 10px; background: var(--soft); border-radius: 999px; padding: 11px 16px; color: var(--muted); font-size: 15px; }
-.search svg { width: 18px; height: 18px; flex: none; }
-.cam { width: 42px; height: 42px; border-radius: 50%; display: grid; place-items: center; }
-.cam svg { width: 22px; height: 22px; }
+/* ---------- Top bar ---------- */
+.top { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
+.brand {
+  display: flex; align-items: center; gap: 8px; background: none; border: 0; padding: 4px 0;
+  font-family: var(--display); font-weight: 700; font-size: 20px; letter-spacing: -0.02em;
+}
+.brand svg { width: 30px; height: 30px; flex: none; }
+.avatar {
+  width: 34px; height: 34px; border-radius: 50%; background: var(--ink); color: var(--card);
+  display: grid; place-items: center; font-weight: 600; font-size: 13px;
+}
 
-/* Closeup image */
-.hero { position: relative; border-radius: 32px; overflow: hidden; aspect-ratio: 1 / 0.86; max-width: 100%;
-  background: radial-gradient(120% 90% at 30% 15%, #FFE3EC 0%, #FFC7D8 45%, #F7A4BF 100%); }
-.hero svg.art { position: absolute; inset: 0; width: 100%; height: 100%; }
-.hero .round { position: absolute; top: 14px; width: 40px; height: 40px; border-radius: 50%; background: rgba(255,255,255,.92); display: grid; place-items: center; }
-.hero .round svg { width: 20px; height: 20px; }
-.hero .back { left: 14px; }
-.hero .more { right: 14px; }
-.hero .views { position: absolute; left: 14px; bottom: 14px; background: rgba(29,28,33,.72); color: #FFFFFF; font-size: 13px; font-weight: 600; padding: 7px 12px; border-radius: 999px; display: flex; align-items: center; gap: 6px; backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
-.hero .views svg { width: 14px; height: 14px; }
+/* ---------- Source + product ---------- */
+.source {
+  display: flex; align-items: center; gap: 10px; background: var(--card); border: 1px solid var(--line);
+  border-radius: 14px; padding: 10px 12px; font-size: 13.5px; color: var(--muted);
+}
+.source .play {
+  width: 30px; height: 30px; border-radius: 9px; flex: none; display: grid; place-items: center;
+  background: linear-gradient(160deg, #2A1530, #151826); color: #fff;
+}
+.source .play svg { width: 12px; height: 12px; }
+.source b { color: var(--ink); font-weight: 600; }
+.source .found { margin-left: auto; color: var(--real); font-weight: 600; font-size: 12.5px; white-space: nowrap; }
 
-/* Action row */
-.actions { display: flex; align-items: center; gap: 6px; margin-top: -4px; }
-.icon-btn { width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; }
-.icon-btn svg { width: 24px; height: 24px; }
-.icon-btn.on svg { fill: var(--hype); stroke: var(--hype); }
-.spacer { flex: 1; }
-.pill { border-radius: 999px; padding: 12px 18px; font-weight: 700; font-size: 15px; }
-.pill.secondary { background: var(--soft); }
-.pill.primary { background: var(--hype); color: #FFFFFF; }
-.pill.primary.done { background: var(--ink); }
+.product { display: flex; gap: 14px; align-items: center; }
+.thumb {
+  width: 64px; height: 64px; border-radius: 16px; flex: none;
+  background: linear-gradient(160deg, #FFD6E6, #FFC2D9 55%, #F7A8C6); display: grid; place-items: center;
+}
+.thumb svg { width: 30px; height: 44px; }
+.product h1 { margin: 0; font-family: var(--display); font-weight: 500; font-size: 19px; line-height: 1.2; letter-spacing: -0.01em; text-wrap: balance; }
+.product p { margin: 3px 0 0; color: var(--muted); font-size: 13.5px; }
+.trend { color: var(--hype); font-weight: 600; }
 
-.title h1 { margin: 0; font-size: 22px; font-weight: 700; letter-spacing: -0.01em; line-height: 1.2; text-wrap: balance; }
-.title p { margin: 4px 0 0; color: var(--muted); }
-.creator { display: flex; align-items: center; gap: 10px; }
-.creator .av { width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center; font-weight: 700; font-size: 13px; color: #FFFFFF; background: var(--ink); flex: none; }
-.creator p { margin: 0; font-size: 14px; line-height: 1.3; }
-.creator span { color: var(--muted); font-size: 13px; }
+/* ---------- Score card ---------- */
+.score {
+  background: var(--card); border-radius: 26px; padding: 18px 18px 20px;
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+  box-shadow: 0 1px 0 var(--line), 0 18px 40px -26px rgba(21, 24, 38, 0.35);
+  --tone: var(--hype); --tone-soft: var(--hype-soft);
+}
+.score.is-real { --tone: var(--real); --tone-soft: var(--real-soft); }
+.score-label {
+  display: inline-flex; align-items: center; gap: 6px; font-weight: 600; font-size: 14px;
+  color: var(--tone); background: var(--tone-soft); padding: 5px 12px; border-radius: 999px;
+  transition: color .6s, background-color .6s;
+}
+.gauge { position: relative; width: 236px; max-width: 100%; aspect-ratio: 1 / 0.86; }
+.gauge svg { width: 100%; height: 100%; display: block; overflow: visible; }
+.gauge .track { stroke: var(--line); }
+.gauge .bar { stroke: var(--tone); transition: stroke-dasharray 1.3s cubic-bezier(.6,0,.2,1), stroke .6s; }
+.gauge .ghost { stroke: var(--hype); opacity: 0; transition: opacity .4s .9s; }
+.score.is-real .gauge .ghost { opacity: .22; }
+.gauge-num { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; padding-top: 10px; }
+.num { font-family: var(--display); font-weight: 700; font-size: 78px; line-height: 1; letter-spacing: -0.04em; color: var(--tone); font-variant-numeric: tabular-nums; transition: color .6s; }
+.out { color: var(--muted); font-size: 14px; margin-top: 4px; }
+.was { font-size: 13px; color: var(--hype); font-weight: 600; margin-top: 2px; opacity: 0; transition: opacity .4s 1s; }
+.score.is-real .was { opacity: 1; }
+.verdict { text-align: center; max-width: 30ch; margin: 2px 0 12px; font-size: 15.5px; text-wrap: balance; }
+.verdict strong { color: var(--tone); }
+.btn-dark {
+  width: 100%; border: 0; border-radius: 16px; padding: 15px 18px; background: var(--ink); color: var(--card);
+  font-weight: 600; font-size: 16px; display: flex; align-items: center; justify-content: center; gap: 10px;
+}
+.btn-dark svg { width: 18px; height: 18px; }
+.score.is-real .reveal { background: var(--card); color: var(--muted); border: 1px solid var(--line); font-weight: 500; font-size: 14px; padding: 11px 16px; }
 
-/* Scores */
-.scores { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-.sc { border-radius: 20px; padding: 14px 14px 12px; display: flex; flex-direction: column; gap: 8px; min-width: 0; }
-.sc.hype { background: var(--hype-soft); }
-.sc.real { background: var(--soft); transition: background-color .5s; }
-.is-real .sc.real { background: var(--real-soft); }
-.sc-head { display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; color: var(--muted); }
-.sc.hype .sc-head { color: var(--hype); }
-.is-real .sc.real .sc-head { color: var(--real); }
-.sc-head svg { width: 14px; height: 14px; flex: none; }
-.val { display: flex; align-items: baseline; gap: 4px; font-variant-numeric: tabular-nums; }
-.val b { font-size: 34px; font-weight: 700; letter-spacing: -0.02em; line-height: 1; }
-.val small { font-size: 14px; color: var(--muted); font-weight: 500; }
-.sc.hype .val b { color: var(--hype); }
-.sc.real .val b { color: #B9B6BF; transition: color .5s; }
-.is-real .sc.real .val b { color: var(--real); }
-.meter { height: 6px; border-radius: 999px; background: rgba(29,28,33,.08); overflow: hidden; }
-.meter i { display: block; height: 100%; border-radius: inherit; width: 0; transition: width 1.2s cubic-bezier(.6,0,.2,1); }
-.sc.hype .meter i { background: var(--hype); width: 92%; }
-.sc.real .meter i { background: var(--real); }
-.is-real .sc.real .meter i { width: 58%; }
-.sc .hint { font-size: 12.5px; color: var(--muted); }
+/* ---------- Stats ---------- */
+.stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.stat { background: var(--card); border-radius: 16px; padding: 12px 10px; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.stat b { font-family: var(--display); font-weight: 500; font-size: 20px; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+.stat span { font-size: 12.5px; color: var(--muted); line-height: 1.3; }
+.bad { color: var(--hype); }
+.good { color: var(--real); }
+.mid { color: var(--flag); }
 
-.verdict { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 20px; background: var(--soft); font-size: 14.5px; }
-.verdict b { font-size: 20px; font-weight: 800; color: var(--hype); font-variant-numeric: tabular-nums; flex: none; }
-.verdict p { margin: 0; }
-.verdict[hidden] { display: none; }
-
-/* Sections */
-.sec { display: flex; flex-direction: column; gap: 12px; }
-.sec h2 { margin: 0; font-size: 18px; font-weight: 700; }
+/* ---------- Panels ---------- */
+.panel { background: var(--card); border-radius: 20px; padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+.panel-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+.panel h2 { margin: 0; font-size: 16px; font-weight: 700; }
+.panel .sub { margin: -8px 0 0; color: var(--muted); font-size: 13px; }
+.count { color: var(--muted); font-size: 13px; white-space: nowrap; }
 .chart svg { width: 100%; height: auto; display: block; }
-.chart text { font-family: var(--font); font-size: 11px; fill: var(--muted); }
-.legend { display: flex; gap: 16px; flex-wrap: wrap; font-size: 12.5px; color: var(--muted); }
-.legend i { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; }
+.chart text { font-family: var(--body); font-size: 11px; fill: var(--muted); }
+.legend { display: flex; flex-wrap: wrap; gap: 14px; font-size: 12.5px; color: var(--muted); }
+.legend i { display: inline-block; width: 16px; height: 3px; border-radius: 2px; vertical-align: middle; margin-right: 6px; }
+.legend i.sq { width: 12px; height: 12px; border-radius: 3px; }
+.def { margin: 0; font-size: 13px; color: var(--muted); background: var(--paper); border-radius: 12px; padding: 10px 12px; }
+.def b { color: var(--ink); }
 
-.cm { display: flex; gap: 10px; }
-.cm .av { width: 32px; height: 32px; border-radius: 50%; flex: none; display: grid; place-items: center; font-size: 12px; font-weight: 700; }
-.cm .body { min-width: 0; display: flex; flex-direction: column; gap: 3px; }
-.cm .meta { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; font-size: 13px; }
-.cm .meta strong { font-size: 14px; }
-.tag { font-size: 12px; font-weight: 600; padding: 2px 8px; border-radius: 999px; background: var(--soft); }
-.tag.ok { background: var(--real-soft); color: var(--real); }
-.cm p { margin: 0; font-size: 14.5px; }
-.cm .score { color: var(--muted); font-size: 13px; }
-
-.flag { display: flex; gap: 10px; align-items: flex-start; background: var(--flag-soft); border-radius: 20px; padding: 12px 14px; font-size: 14px; }
-.flag svg { width: 18px; height: 18px; flex: none; color: var(--flag); margin-top: 2px; }
-.flag p { margin: 0; }
+.flag { display: flex; gap: 12px; align-items: flex-start; background: var(--flag-soft); color: var(--flag); border-radius: 16px; padding: 13px 14px; font-size: 14px; }
+.flag svg { width: 20px; height: 20px; flex: none; margin-top: 1px; }
+.flag p { margin: 0; color: var(--ink); }
 .flag b { color: var(--flag); }
 
-/* Masonry feed */
-.feed { column-count: 2; column-gap: 10px; }
-.pin { break-inside: avoid; margin-bottom: 14px; display: flex; flex-direction: column; gap: 6px; }
-.pin .img { position: relative; border-radius: 18px; overflow: hidden; }
-.pin .img svg { display: block; width: 100%; height: 100%; }
-.pin .badge { position: absolute; left: 8px; bottom: 8px; background: rgba(255,255,255,.94); border-radius: 999px; padding: 4px 9px; font-size: 12px; font-weight: 700; display: flex; gap: 8px; font-variant-numeric: tabular-nums; }
-.pin .badge .h { color: var(--hype); }
-.pin .badge .r { color: var(--real); }
-.pin .name { display: flex; justify-content: space-between; gap: 6px; font-size: 13.5px; font-weight: 600; line-height: 1.3; padding-inline: 2px; }
-.pin .name svg { width: 16px; height: 16px; flex: none; color: var(--muted); margin-top: 1px; }
+.link-btn {
+  border: 1px solid var(--line); background: var(--card); border-radius: 14px; padding: 11px 14px;
+  font-weight: 600; font-size: 14px; display: flex; align-items: center; justify-content: center; gap: 8px;
+}
+.link-btn svg { width: 16px; height: 16px; }
 
-.footnote { color: var(--muted); font-size: 12px; text-align: center; margin: 0; }
+/* ---------- Dupes ---------- */
+.dupe { display: flex; align-items: center; gap: 12px; padding-top: 12px; border-top: 1px solid var(--line); }
+.dupe:first-of-type { border-top: 0; padding-top: 0; }
+.dupe .mini { width: 44px; height: 44px; border-radius: 12px; flex: none; display: grid; place-items: center; }
+.dupe .mini svg { width: 20px; height: 30px; }
+.dupe div { min-width: 0; flex: 1; }
+.dupe strong { display: block; font-size: 14.5px; }
+.dupe span { font-size: 12.5px; color: var(--muted); }
+.dupe .price { flex: none; text-align: right; font-weight: 700; font-variant-numeric: tabular-nums; }
+.dupe .price small { display: block; font-weight: 500; font-size: 12px; color: var(--real); }
 
-/* Bottom nav */
-.tabs { position: fixed; left: 0; right: 0; bottom: 0; z-index: 5; background: rgba(255,255,255,.96); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-top: 1px solid var(--line);
-  padding: 10px max(16px, env(safe-area-inset-right, 0px)) calc(10px + env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px)); }
-.tabs nav { max-width: 430px; margin: 0 auto; display: flex; justify-content: space-around; align-items: center; }
-.tabs a { width: 44px; height: 44px; display: grid; place-items: center; color: var(--muted); border-radius: 12px; }
-.tabs a svg { width: 26px; height: 26px; }
-.tabs a[aria-current] { color: var(--ink); }
-.tabs a.me span { width: 28px; height: 28px; border-radius: 50%; background: var(--ink); color: #FFFFFF; display: grid; place-items: center; font-size: 11px; font-weight: 700; }
+/* ---------- Decide ---------- */
+.decide { background: var(--ink); color: var(--card); border-radius: 22px; padding: 18px; display: flex; flex-direction: column; gap: 12px; }
+.decide h2 { margin: 0; font-family: var(--display); font-weight: 500; font-size: 18px; letter-spacing: -0.01em; }
+.decide p { margin: -4px 0 0; color: #B9BDCC; font-size: 14px; }
+.decide .row { display: grid; grid-template-columns: 1fr auto; gap: 8px; }
+.btn-wait {
+  border: 0; border-radius: 14px; padding: 14px 16px; background: var(--card); color: var(--ink);
+  font-weight: 700; font-size: 15.5px; display: flex; align-items: center; justify-content: center; gap: 8px;
+}
+.btn-wait svg { width: 18px; height: 18px; }
+.btn-buy { border: 1px solid #3A3E52; background: transparent; color: #B9BDCC; border-radius: 14px; padding: 14px 14px; font-weight: 500; font-size: 14px; }
+.decide.is-waiting .btn-wait { background: var(--real); color: #fff; }
+.decide .note { font-size: 13px; color: #B9BDCC; margin: 0; min-height: 0; }
 
-@media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition-duration: .01ms !important; } }
+.footnote { color: var(--muted); font-size: 12px; text-align: center; margin: 4px 0 0; }
+
+/* ---------- Threads ---------- */
+.view-title { display: flex; flex-direction: column; gap: 2px; }
+.view-title h1 { margin: 0; font-family: var(--display); font-weight: 500; font-size: 22px; letter-spacing: -0.02em; }
+.view-title p { margin: 0; color: var(--muted); font-size: 13.5px; }
+.rules { display: flex; gap: 10px; align-items: flex-start; background: var(--real-soft); border-radius: 16px; padding: 12px 14px; font-size: 13.5px; }
+.rules svg { width: 20px; height: 20px; flex: none; color: var(--real); margin-top: 1px; }
+.rules p { margin: 0; }
+.rules b { color: var(--real); }
+.filters { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; margin: 0 -16px; padding: 0 16px; }
+.filters::-webkit-scrollbar { display: none; }
+.filters button {
+  flex: none; border: 1px solid var(--line); background: var(--card); border-radius: 999px;
+  padding: 7px 13px; font-size: 13.5px; font-weight: 500; color: var(--muted);
+}
+.filters button[aria-pressed="true"] { background: var(--ink); border-color: var(--ink); color: var(--card); font-weight: 600; }
+
+.thread { background: var(--card); border-radius: 20px; padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+.t-head { display: flex; align-items: center; gap: 10px; }
+.pic { width: 38px; height: 38px; border-radius: 50%; flex: none; display: grid; place-items: center; font-weight: 700; font-size: 14px; color: var(--ink); }
+.t-head .meta { min-width: 0; flex: 1; display: flex; flex-direction: column; gap: 3px; }
+.t-head .name { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; font-weight: 700; font-size: 14.5px; }
+.t-head .name small { font-weight: 500; font-size: 12.5px; color: var(--muted); }
+.chip { font-size: 11.5px; font-weight: 600; padding: 3px 8px; border-radius: 999px; display: inline-flex; gap: 4px; align-items: center; white-space: nowrap; }
+.chip svg { width: 11px; height: 11px; }
+.chip.ok { background: var(--real-soft); color: var(--real); }
+.chip.owned { background: var(--paper); color: var(--ink); }
+.chip.ask { background: var(--flag-soft); color: var(--flag); }
+.chip.badge { background: var(--hype-soft); color: var(--hype); }
+
+.chain { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+.chain li { position: relative; padding: 0 0 14px 26px; }
+.chain li:last-child { padding-bottom: 0; }
+.chain li::before { content: ""; position: absolute; left: 7px; top: 16px; bottom: -2px; width: 2px; background: var(--line); }
+.chain li:last-child::before { display: none; }
+.chain .dot { position: absolute; left: 0; top: 3px; width: 16px; height: 16px; border-radius: 50%; border: 3px solid var(--card); box-shadow: 0 0 0 2px currentColor; background: currentColor; }
+.chain .when { display: flex; align-items: center; gap: 8px; font-size: 12.5px; font-weight: 700; margin-bottom: 2px; }
+.chain .when .r { margin-left: auto; font-size: 14px; font-variant-numeric: tabular-nums; }
+.chain p { margin: 0; color: var(--ink); font-size: 14.5px; }
+.chain .stopped { display: inline-block; margin-top: 4px; font-size: 12px; font-weight: 600; color: var(--hype); }
+.chain .pending { color: var(--muted); }
+.chain .pending p { color: var(--muted); font-style: italic; }
+
+.t-foot { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding-top: 10px; border-top: 1px solid var(--line); font-size: 13px; color: var(--muted); }
+.t-foot .helped { display: inline-flex; align-items: center; gap: 6px; }
+.t-foot .helped svg { width: 15px; height: 15px; color: var(--real); }
+.t-foot button { border: 0; background: var(--paper); border-radius: 10px; padding: 7px 11px; font-weight: 600; font-size: 13px; }
+
+.question { font-size: 15px; font-weight: 600; margin: 0; }
+.answers { display: flex; flex-direction: column; gap: 10px; }
+.answer { background: var(--paper); border-radius: 14px; padding: 10px 12px; display: flex; flex-direction: column; gap: 4px; }
+.answer .who { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; font-size: 13px; font-weight: 700; }
+.answer p { margin: 0; font-size: 14px; }
+
+.ask-bar {
+  position: fixed; left: 0; right: 0; bottom: calc(64px + env(safe-area-inset-bottom, 0px)); z-index: 4;
+  display: flex; justify-content: center; pointer-events: none;
+}
+.ask-bar button {
+  pointer-events: auto; border: 0; border-radius: 999px; background: var(--ink); color: var(--card);
+  padding: 12px 18px; font-weight: 600; font-size: 14.5px; display: inline-flex; align-items: center; gap: 8px;
+  box-shadow: 0 10px 24px -10px rgba(21,24,38,.6);
+}
+.ask-bar svg { width: 17px; height: 17px; }
+
+/* ---------- Wait list ---------- */
+.saved { background: var(--ink); color: var(--card); border-radius: 22px; padding: 18px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.saved span { color: #B9BDCC; font-size: 13.5px; display: block; }
+.saved b { font-family: var(--display); font-weight: 700; font-size: 34px; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; color: #7FE3D8; }
+.saved .skips { text-align: right; font-size: 13px; color: #B9BDCC; }
+.saved .skips strong { display: block; color: var(--card); font-size: 22px; font-family: var(--display); font-weight: 500; }
+
+.wait-item { background: var(--card); border-radius: 20px; padding: 14px; display: flex; flex-direction: column; gap: 12px; }
+.wi-top { display: flex; align-items: center; gap: 12px; }
+.wi-top .mini { width: 48px; height: 48px; border-radius: 14px; flex: none; display: grid; place-items: center; }
+.wi-top .mini svg { width: 26px; height: 32px; }
+.wi-top div.txt { min-width: 0; flex: 1; }
+.wi-top strong { display: block; font-size: 15px; }
+.wi-top span { font-size: 13px; color: var(--muted); }
+.timer { font-family: var(--display); font-weight: 500; font-size: 15px; font-variant-numeric: tabular-nums; text-align: right; flex: none; }
+.timer small { display: block; font-family: var(--body); font-size: 11.5px; color: var(--muted); font-weight: 500; }
+.progress { height: 6px; border-radius: 99px; background: var(--paper); overflow: hidden; }
+.progress i { display: block; height: 100%; background: var(--real); border-radius: 99px; }
+.due { background: var(--flag-soft); border-radius: 14px; padding: 12px; display: flex; flex-direction: column; gap: 10px; }
+.due p { margin: 0; font-size: 14px; }
+.due p b { color: var(--flag); }
+.due .row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.due button { border: 0; border-radius: 12px; padding: 11px; font-weight: 600; font-size: 14px; }
+.due .skip { background: var(--ink); color: var(--card); }
+.due .keep { background: var(--card); border: 1px solid var(--line); }
+.resolved { font-size: 13.5px; font-weight: 600; color: var(--real); display: flex; align-items: center; gap: 6px; }
+.resolved svg { width: 16px; height: 16px; }
+.section-label { margin: 6px 2px -4px; font-size: 12.5px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; }
+.empty { text-align: center; color: var(--muted); font-size: 14px; background: var(--card); border-radius: 20px; padding: 20px 16px; border: 1px dashed var(--line); }
+
+/* ---------- Tab bar ---------- */
+.tabs {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 5;
+  background: rgba(255,255,255,.94); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+  border-top: 1px solid var(--line);
+  padding: 8px max(16px, env(safe-area-inset-right, 0px)) calc(8px + env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px));
+}
+.tabs nav { max-width: 430px; margin: 0 auto; display: grid; grid-template-columns: repeat(3, 1fr); }
+.tabs button { position: relative; border: 0; background: none; display: flex; flex-direction: column; align-items: center; gap: 3px; font-size: 11.5px; color: var(--muted); padding: 4px 0; }
+.tabs button svg { width: 22px; height: 22px; }
+.tabs button[aria-current="page"] { color: var(--ink); font-weight: 600; }
+.tabs .badge-n {
+  position: absolute; top: 0; left: calc(50% + 6px); min-width: 17px; height: 17px; border-radius: 99px; padding: 0 5px;
+  background: var(--hype); color: #fff; font-size: 11px; font-weight: 700; display: grid; place-items: center;
+}
+
+/* ---------- Toast ---------- */
+.toast {
+  position: fixed; left: 50%; bottom: calc(126px + env(safe-area-inset-bottom, 0px)); z-index: 30;
+  transform: translate(-50%, 12px); opacity: 0; pointer-events: none;
+  background: var(--ink); color: var(--card); border-radius: 14px; padding: 11px 15px; font-size: 14px; font-weight: 500;
+  width: max-content; max-width: min(360px, calc(100vw - 32px)); text-align: center;
+  transition: opacity .25s, transform .25s;
+}
+.toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+/* ---------- Intro: share from a video ---------- */
+.intro { position: fixed; inset: 0; z-index: 20; background: #07080D; display: flex; justify-content: center; transition: opacity .45s, visibility .45s; }
+.intro.gone { opacity: 0; visibility: hidden; }
+.phone { position: relative; width: 100%; max-width: 430px; height: 100%; overflow: hidden; color: #fff; }
+.video {
+  position: absolute; inset: 0;
+  background:
+    radial-gradient(120% 70% at 30% 25%, #FF8DB8 0%, rgba(255,141,184,0) 60%),
+    radial-gradient(90% 60% at 80% 75%, #7A3CFF 0%, rgba(122,60,255,0) 65%),
+    linear-gradient(170deg, #3B1036, #120A1F 70%);
+}
+.video .bottle { position: absolute; left: 50%; top: 40%; width: 46%; max-width: 190px; transform: translate(-50%, -50%) rotate(-8deg); filter: drop-shadow(0 30px 40px rgba(0,0,0,.45)); animation: bob 3.2s ease-in-out infinite; }
+@keyframes bob { 50% { transform: translate(-50%, -54%) rotate(-5deg); } }
+.sparkle { position: absolute; width: 14px; height: 14px; background: #fff; clip-path: polygon(50% 0, 62% 38%, 100% 50%, 62% 62%, 50% 100%, 38% 62%, 0 50%, 38% 38%); animation: tw 2s ease-in-out infinite; }
+@keyframes tw { 50% { opacity: .2; transform: scale(.6); } }
+.v-top { position: absolute; top: calc(14px + env(safe-area-inset-top, 0px)); left: 16px; right: 16px; display: flex; justify-content: space-between; font-size: 13px; font-weight: 600; opacity: .85; }
+.rail { position: absolute; right: 12px; bottom: calc(150px + env(safe-area-inset-bottom, 0px)); display: flex; flex-direction: column; gap: 18px; align-items: center; }
+.rail div, .rail button { display: flex; flex-direction: column; align-items: center; gap: 3px; font-size: 12px; font-weight: 600; background: none; border: 0; color: #fff; padding: 0; }
+.rail svg { width: 32px; height: 32px; filter: drop-shadow(0 2px 4px rgba(0,0,0,.4)); }
+.rail .share-btn { position: relative; }
+.rail .share-btn::after { content: ""; position: absolute; top: -6px; left: 50%; width: 44px; height: 44px; margin-left: -22px; border-radius: 50%; border: 2px solid #fff; animation: ping 1.6s ease-out infinite; }
+@keyframes ping { from { transform: scale(.7); opacity: .9; } to { transform: scale(1.25); opacity: 0; } }
+.caption { position: absolute; left: 16px; right: 76px; bottom: calc(100px + env(safe-area-inset-bottom, 0px)); display: flex; flex-direction: column; gap: 6px; text-shadow: 0 1px 6px rgba(0,0,0,.4); }
+.caption strong { font-size: 15.5px; }
+.caption p { margin: 0; font-size: 14.5px; }
+.caption .views { font-size: 13px; opacity: .8; }
+.tap-hint { position: absolute; left: 0; right: 0; bottom: calc(36px + env(safe-area-inset-bottom, 0px)); text-align: center; font-size: 13.5px; font-weight: 600; opacity: .8; }
+
+.sheet-scrim { position: absolute; inset: 0; background: rgba(0,0,0,.35); opacity: 0; pointer-events: none; transition: opacity .3s; }
+.sheet {
+  position: absolute; left: 0; right: 0; bottom: 0; background: #F4F5F8; color: var(--ink);
+  border-radius: 22px 22px 0 0; padding: 10px 16px calc(22px + env(safe-area-inset-bottom, 0px));
+  transform: translateY(105%); transition: transform .38s cubic-bezier(.2,.8,.2,1);
+}
+.intro.sheet-open .sheet { transform: none; }
+.intro.sheet-open .sheet-scrim { opacity: 1; pointer-events: auto; }
+.grab { width: 40px; height: 5px; border-radius: 9px; background: #C9CDD8; margin: 0 auto 14px; }
+.sheet h3 { margin: 0 0 14px; font-size: 15px; font-weight: 700; text-align: center; }
+.apps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.apps button { border: 0; background: none; display: flex; flex-direction: column; align-items: center; gap: 7px; font-size: 12px; font-weight: 500; color: var(--ink); padding: 0; }
+.apps .ic { width: 58px; height: 58px; border-radius: 16px; display: grid; place-items: center; color: #fff; }
+.apps .ic svg { width: 28px; height: 28px; }
+.apps .hc .ic { background: var(--ink); position: relative; }
+.apps .hc .ic svg { width: 40px; height: 40px; }
+.apps .hc .ic::after { content: ""; position: absolute; inset: -5px; border-radius: 20px; border: 2.5px solid var(--hype); animation: ping2 1.6s ease-out infinite; }
+@keyframes ping2 { from { transform: scale(.95); opacity: 1; } to { transform: scale(1.18); opacity: 0; } }
+.apps .hc { font-weight: 700; }
+.sheet .copy-row { margin-top: 18px; background: #fff; border-radius: 14px; padding: 12px 14px; font-size: 13px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.scan { position: absolute; inset: 0; background: var(--paper); color: var(--ink); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 22px; padding: 24px; opacity: 0; pointer-events: none; transition: opacity .3s; }
+.intro.scanning .scan { opacity: 1; pointer-events: auto; }
+.scan .logo { width: 64px; height: 64px; animation: pulse 1s ease-in-out infinite; }
+@keyframes pulse { 50% { transform: scale(.9); } }
+.scan h2 { margin: 0; font-family: var(--display); font-weight: 500; font-size: 18px; text-align: center; }
+.steps { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; width: 100%; max-width: 290px; }
+.steps li { display: flex; align-items: center; gap: 10px; font-size: 14.5px; color: var(--muted); opacity: .35; transition: opacity .3s, color .3s; }
+.steps li.done { opacity: 1; color: var(--ink); }
+.steps li i { width: 22px; height: 22px; border-radius: 50%; flex: none; background: var(--line); display: grid; place-items: center; transition: background-color .3s; }
+.steps li.done i { background: var(--real); }
+.steps li i svg { width: 13px; height: 13px; color: #fff; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition-duration: .01ms !important; transition-delay: 0s !important; }
+}
 </style>
 </head>
-<body>
+<body class="locked">
 
-
-<main class="app" id="app">
-  <header class="top">
-    <div class="search" role="search">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
-      Search a product or paste a link
+<!-- ================= Intro: the hype starts in a video ================= -->
+<div class="intro" id="intro">
+  <div class="phone">
+    <div class="video" aria-hidden="true">
+      <svg class="bottle" viewBox="0 0 30 44"><rect x="10" y="1" width="10" height="9" rx="2" fill="#151826"/><rect x="4" y="10" width="22" height="33" rx="7" fill="#FFFFFF" opacity=".95"/><rect x="8" y="22" width="14" height="3" rx="1.5" fill="#F0266F"/><rect x="8" y="27" width="9" height="2" rx="1" fill="#F7A8C6"/></svg>
+      <span class="sparkle" style="left:22%;top:24%"></span>
+      <span class="sparkle" style="left:72%;top:30%;animation-delay:.6s"></span>
+      <span class="sparkle" style="left:64%;top:52%;animation-delay:1.1s;width:10px;height:10px"></span>
     </div>
-    <span class="cam" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg></span>
+    <div class="v-top" aria-hidden="true"><span>Following</span><span>For You</span><span>&#9906;</span></div>
+
+    <div class="rail">
+      <div aria-hidden="true"><svg viewBox="0 0 24 24" fill="#fff"><path d="M12 21s-7.5-4.6-9.5-9.2C1.2 8.6 3.2 5 6.7 5c2.1 0 3.6 1.2 4.3 2.4h2C13.7 6.2 15.2 5 17.3 5c3.5 0 5.5 3.6 4.2 6.8C19.5 16.4 12 21 12 21Z"/></svg>1.2M</div>
+      <div aria-hidden="true"><svg viewBox="0 0 24 24" fill="#fff"><path d="M12 3C6.5 3 2 6.9 2 11.6c0 2.6 1.4 4.9 3.6 6.5L5 21.5l4-2c1 .3 2 .4 3 .4 5.5 0 10-3.9 10-8.6S17.5 3 12 3Z"/></svg>18.4K</div>
+      <button class="share-btn" id="shareBtn" type="button" aria-label="Share this video"><svg viewBox="0 0 24 24" fill="#fff"><path d="M13 4v4.2C6.7 9 3.5 13.4 3 19.5c2-3.3 5.2-5 10-5V19l8-7.5L13 4Z"/></svg>Share</button>
+    </div>
+
+    <div class="caption" aria-hidden="true">
+      <strong>@glowwithkai</strong>
+      <p>this serum literally changed my skin &#10024; #glowdrop #skincare #musthave</p>
+      <span class="views">4.1M views &middot; Video shown is a mock-up</span>
+    </div>
+    <div class="tap-hint" id="tapHint">Saw it on your feed? Tap <b>Share</b></div>
+
+    <div class="sheet-scrim" id="scrim"></div>
+    <div class="sheet" role="dialog" aria-label="Share to">
+      <div class="grab"></div>
+      <h3>Share to</h3>
+      <div class="apps">
+        <button type="button" tabindex="-1"><span class="ic" style="background:#34C759"><svg viewBox="0 0 24 24" fill="#fff"><path d="M12 3C6.5 3 2 6.6 2 11c0 2.4 1.3 4.6 3.4 6L4.6 21l4.1-2.2c1 .3 2.1.4 3.3.4 5.5 0 10-3.6 10-8.1S17.5 3 12 3Z"/></svg></span>Messages</button>
+        <button type="button" tabindex="-1"><span class="ic" style="background:#8E93A6"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/></svg></span>Copy link</button>
+        <button type="button" tabindex="-1"><span class="ic" style="background:#8E93A6"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12v18l-6-4-6 4z"/></svg></span>Save</button>
+        <button type="button" class="hc" id="openHC"><span class="ic"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M16 5c1.2 3.6 5.5 5.8 5.5 11a5.5 5.5 0 0 1-11 0c0-2.6 1.4-4 2.4-5.2.2 1.7 1 2.7 2.2 3.1C14.6 11 15 7.8 16 5Z" fill="#F0266F"/><path d="m11.5 21.5 3.2 3.2 6.8-7" fill="none" stroke="#FFFFFF" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>HypeCheck</button>
+      </div>
+      <div class="copy-row">tiktok.com/@glowwithkai/video/7429&hellip;</div>
+    </div>
+
+    <div class="scan" aria-live="polite">
+      <svg class="logo" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="9" fill="#151826"/><path d="M16 5c1.2 3.6 5.5 5.8 5.5 11a5.5 5.5 0 0 1-11 0c0-2.6 1.4-4 2.4-5.2.2 1.7 1 2.7 2.2 3.1C14.6 11 15 7.8 16 5Z" fill="#F0266F"/><path d="m11.5 21.5 3.2 3.2 6.8-7" fill="none" stroke="#FFFFFF" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <h2>Checking the hype&hellip;</h2>
+      <ul class="steps" id="steps">
+        <li><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5 9-10"/></svg></i>Product found in the video</li>
+        <li><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5 9-10"/></svg></i>1,284 receipt-verified buyers matched</li>
+        <li><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5 9-10"/></svg></i>Top 10 creator posts scanned for ads</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<main class="app">
+  <header class="top">
+    <button class="brand" id="brand" type="button" aria-label="HypeCheck home. Double-tap to restart the demo.">
+      <svg viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="9" fill="#151826"/><path d="M16 5c1.2 3.6 5.5 5.8 5.5 11a5.5 5.5 0 0 1-11 0c0-2.6 1.4-4 2.4-5.2.2 1.7 1 2.7 2.2 3.1C14.6 11 15 7.8 16 5Z" fill="#F0266F"/><path d="m11.5 21.5 3.2 3.2 6.8-7" fill="none" stroke="#FFFFFF" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      HypeCheck
+    </button>
+    <div class="avatar" aria-hidden="true">NL</div>
   </header>
 
-  <div class="hero" id="hero">
-    <svg class="art" viewBox="0 0 400 460" aria-hidden="true">
-      <defs>
-        <linearGradient id="glass" x1="0" x2="1"><stop offset="0" stop-color="#FFFFFF" stop-opacity=".95"/><stop offset=".55" stop-color="#FFF4F8" stop-opacity=".85"/><stop offset="1" stop-color="#FFD9E6" stop-opacity=".9"/></linearGradient>
-        <linearGradient id="liquid" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFB3CB"/><stop offset="1" stop-color="#F06A97"/></linearGradient>
-      </defs>
-      <ellipse cx="200" cy="402" rx="110" ry="16" fill="#D9799B" opacity=".35"/>
-      <circle cx="96" cy="120" r="10" fill="#FFFFFF" opacity=".7"/>
-      <circle cx="318" cy="168" r="6" fill="#FFFFFF" opacity=".8"/>
-      <circle cx="300" cy="96" r="14" fill="#FFFFFF" opacity=".45"/>
-      <rect x="182" y="70" width="36" height="58" rx="16" fill="#2B2730"/>
-      <rect x="172" y="120" width="56" height="34" rx="8" fill="#3A3540"/>
-      <rect x="128" y="148" width="144" height="250" rx="44" fill="url(#glass)"/>
-      <rect x="140" y="250" width="120" height="136" rx="34" fill="url(#liquid)" opacity=".9"/>
-      <rect x="140" y="180" width="120" height="46" rx="12" fill="#FFFFFF"/>
-      <text x="200" y="202" text-anchor="middle" font-family="Figtree, Arial, sans-serif" font-weight="800" font-size="17" fill="#2B2730">GlowDrop</text>
-      <text x="200" y="218" text-anchor="middle" font-family="Figtree, Arial, sans-serif" font-weight="600" font-size="8.5" fill="#9A8F9F" letter-spacing="1">DEW SERUM 30ML</text>
-      <rect x="134" y="236" width="8" height="130" rx="4" fill="#FFFFFF" opacity=".75"/>
-    </svg>
-    <span class="round back" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m15 5-7 7 7 7"/></svg></span>
-    <span class="round more" aria-hidden="true"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg></span>
-    <span class="views"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2c1.5 4.5 7 7 7 13a7 7 0 0 1-14 0c0-3.3 1.8-5.1 3-6.6.3 2.2 1.3 3.4 2.8 4C10.3 9 11 5.2 12 2Z"/></svg>4.1M views on TikTok this week</span>
-  </div>
-
-  <div class="actions">
-    <button class="icon-btn" id="like" type="button" aria-label="Like"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10Z"/></svg></button>
-    <span class="icon-btn" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M4 5h16v11H9l-5 4z"/></svg></span>
-    <span class="icon-btn" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V4m0 0L8 8m4-4 4 4M5 13v6h14v-6"/></svg></span>
-    <span class="spacer"></span>
-    <span class="pill secondary">Prices</span>
-    <button class="pill primary" id="reveal" type="button">Check reality</button>
-  </div>
-
-  <div class="title">
-    <h1>GlowDrop Dew Serum</h1>
-    <p>Skincare, $34. Viral for the "glass skin" look.</p>
-  </div>
-
-  <section class="scores" id="scores" aria-live="polite">
-    <div class="sc hype">
-      <div class="sc-head"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2c1.5 4.5 7 7 7 13a7 7 0 0 1-14 0c0-3.3 1.8-5.1 3-6.6.3 2.2 1.3 3.4 2.8 4C10.3 9 11 5.2 12 2Z"/></svg>Hype Score</div>
-      <div class="val"><b>9.2</b><small>/10</small></div>
-      <div class="meter"><i></i></div>
-      <div class="hint">Social media buzz</div>
+  <!-- ================= CHECK ================= -->
+  <section class="view" id="view-check" aria-label="Check">
+    <div class="source">
+      <span class="play" aria-hidden="true"><svg viewBox="0 0 12 12" fill="currentColor"><path d="M3 1.5v9l7.5-4.5z"/></svg></span>
+      <span>Shared from <b>@glowwithkai</b>&rsquo;s video</span>
+      <span class="found">Product found</span>
     </div>
-    <div class="sc real">
-      <div class="sc-head"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12 5 5 9-10"/></svg>Reality, day 30</div>
-      <div class="val"><b id="realNum">?</b><small>/10</small></div>
-      <div class="meter"><i></i></div>
-      <div class="hint" id="realHint">Tap Check reality</div>
-    </div>
-  </section>
 
-  <div class="verdict" id="verdict" hidden>
-    <b>41%</b>
-    <p>of 1,284 receipt-verified buyers regret it after 30 days.</p>
-  </div>
-
-  <section class="sec chart" aria-label="Rating over time">
-    <h2>Rating over time</h2>
-    <svg viewBox="0 0 320 140" role="img" aria-label="Hype stays at 9.2. Verified rating falls from 8.7 on day 1 to 5.8 on day 30 and 5.1 on day 90.">
-      <!-- y = 10 + (10 - v) * 11.2 ; x: day1=40, day7=110, day30=200, day90=290 -->
-      <g stroke="#E6E4E9" stroke-width="1"><line x1="28" y1="10" x2="306" y2="10"/><line x1="28" y1="66" x2="306" y2="66"/><line x1="28" y1="122" x2="306" y2="122"/></g>
-      <text x="22" y="14" text-anchor="end">10</text><text x="22" y="70" text-anchor="end">5</text><text x="22" y="126" text-anchor="end">0</text>
-      <line x1="40" y1="18.96" x2="290" y2="18.96" stroke="#E3195B" stroke-width="2.5" stroke-dasharray="5 6" stroke-linecap="round"/>
-      <path d="M40,24.56 L110,33.52 L200,57.04 L290,64.88 L290,122 L40,122 Z" fill="#0C8478" opacity=".09"/>
-      <polyline points="40,24.56 110,33.52 200,57.04 290,64.88" fill="none" stroke="#0C8478" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
-      <circle cx="40" cy="24.56" r="4" fill="#0C8478"/><circle cx="110" cy="33.52" r="4" fill="#0C8478"/>
-      <circle cx="200" cy="57.04" r="5.5" fill="#FFFFFF" stroke="#0C8478" stroke-width="3"/><circle cx="290" cy="64.88" r="4" fill="#0C8478"/>
-      <text x="200" y="47" text-anchor="middle" style="fill:#0C8478;font-weight:700;font-size:12px">5.8</text>
-      <text x="290" y="55" text-anchor="middle" style="fill:#0C8478;font-weight:700;font-size:12px">5.1</text>
-      <text x="40" y="137" text-anchor="middle">Day 1</text><text x="110" y="137" text-anchor="middle">Day 7</text><text x="200" y="137" text-anchor="middle">Day 30</text><text x="290" y="137" text-anchor="middle">Day 90</text>
-    </svg>
-    <div class="legend"><span><i style="background:#E3195B"></i>Hype on social media</span><span><i style="background:#0C8478"></i>Verified buyer rating</span></div>
-  </section>
-
-  <div class="flag" role="note">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 21V4h11l-1 4h5v8H10l1-4H5"/></svg>
-    <p><b>7 of the top 10 TikTok reviews</b> look like paid promotion with no disclosure.</p>
-  </div>
-
-  <section class="sec" aria-label="Verified reviews">
-    <h2>What buyers say later</h2>
-    <div class="cm">
-      <span class="av" style="background:#FDE7EE;color:#E3195B">MR</span>
-      <div class="body">
-        <div class="meta"><strong>Maya R.</strong><span class="tag">Day 30</span><span class="tag ok">Receipt verified</span><span class="score">5/10</span></div>
-        <p>Looked amazing in every video. On my skin it pills under makeup, and the glow is gone by noon.</p>
+    <div class="product">
+      <div class="thumb" aria-hidden="true"><svg viewBox="0 0 30 44"><rect x="10" y="1" width="10" height="9" rx="2" fill="#151826"/><rect x="4" y="10" width="22" height="33" rx="7" fill="#FFFFFF" opacity=".92"/><rect x="8" y="22" width="14" height="3" rx="1.5" fill="#F0266F"/></svg></div>
+      <div>
+        <h1>GlowDrop Dew Serum</h1>
+        <p><span class="trend">Trending on TikTok</span>, 4.1M views this week</p>
       </div>
     </div>
-    <div class="cm">
-      <span class="av" style="background:#DFF2EF;color:#0C8478">JK</span>
-      <div class="body">
-        <div class="meta"><strong>Jordan K.</strong><span class="tag">Day 90</span><span class="tag ok">Receipt verified</span><span class="score">4/10</span></div>
-        <p>Half the bottle is left. A $12 drugstore serum works the same for me.</p>
+
+    <section class="score" id="score" aria-live="polite">
+      <div class="score-label">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2c1.5 4.5 7 7 7 13a7 7 0 0 1-14 0c0-3.3 1.8-5.1 3-6.6.3 2.2 1.3 3.4 2.8 4C10.3 9 11 5.2 12 2Z"/></svg>
+        <span id="labelText">Hype Score</span>
       </div>
+      <div class="gauge">
+        <svg viewBox="0 0 220 190" aria-hidden="true">
+          <g transform="rotate(135 110 110)" fill="none" stroke-width="16" stroke-linecap="round">
+            <circle class="track" cx="110" cy="110" r="88" id="track"/>
+            <circle class="ghost" cx="110" cy="110" r="88" id="ghost"/>
+            <circle class="bar" cx="110" cy="110" r="88" id="bar"/>
+          </g>
+        </svg>
+        <div class="gauge-num">
+          <div class="num" id="num">9.2</div>
+          <div class="out">out of 10</div>
+          <div class="was">Hype was 9.2</div>
+        </div>
+      </div>
+      <p class="verdict" id="verdict">Everyone is posting about it. How does it hold up after the hype?</p>
+      <button class="btn-dark reveal" id="reveal" type="button">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h12l4 5-4 5H4z"/></svg>
+        <span id="revealText">Check the reality</span>
+      </button>
+    </section>
+
+    <section class="stats" aria-label="Key numbers">
+      <div class="stat"><b class="bad">41%</b><span>regret it after 30 days</span></div>
+      <div class="stat"><b class="mid">18 days</b><span>Hype Half-Life</span></div>
+      <div class="stat"><b>1,284</b><span>receipt-verified buyers</span></div>
+    </section>
+
+    <section class="panel chart" aria-label="Rating over time">
+      <h2>The hype gap</h2>
+      <p class="sub">Verified buyers rate it again at day 7, 30 and 90.</p>
+      <svg viewBox="0 0 320 156" role="img" aria-label="Hype stays at 9.2. Verified rating falls from 8.7 on day 1 to 5.8 on day 30 and 5.1 on day 90. Half of the drop happens by day 18.">
+        <g stroke="#DCE0EA" stroke-width="1">
+          <line x1="34" y1="22" x2="306" y2="22"/><line x1="34" y1="60" x2="306" y2="60"/>
+          <line x1="34" y1="98" x2="306" y2="98"/><line x1="34" y1="136" x2="306" y2="136"/>
+        </g>
+        <text x="26" y="26" text-anchor="end">10</text><text x="26" y="64" text-anchor="end">7.5</text>
+        <text x="26" y="102" text-anchor="end">5</text><text x="26" y="140" text-anchor="end">2.5</text>
+        <!-- y = 22 + (10 - v) * 15.2 ; x: day1=50, day7=110, day18=153, day30=200, day90=290 -->
+        <path d="M50,34.2 L290,34.2 L290,96.5 L200,85.8 L110,53.9 L50,41.8 Z" fill="#F0266F" opacity="0.1"/>
+        <polyline points="50,34.2 290,34.2" fill="none" stroke="#F0266F" stroke-width="2.5" stroke-dasharray="6 6"/>
+        <polyline points="50,41.8 110,53.9 200,85.8 290,96.5" fill="none" stroke="#0B8A80" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
+        <line x1="153" y1="12" x2="153" y2="136" stroke="#B4480E" stroke-width="1.5" stroke-dasharray="3 4"/>
+        <text x="153" y="9" text-anchor="middle" style="fill:#B4480E;font-weight:700">Half-life &middot; day 18</text>
+        <circle cx="50" cy="41.8" r="4" fill="#0B8A80"/><circle cx="110" cy="53.9" r="4" fill="#0B8A80"/>
+        <circle cx="153" cy="69.1" r="5" fill="#FFFFFF" stroke="#B4480E" stroke-width="2.5"/>
+        <circle cx="200" cy="85.8" r="4" fill="#0B8A80"/><circle cx="290" cy="96.5" r="4" fill="#0B8A80"/>
+        <text x="245" y="66" text-anchor="middle" style="fill:#F0266F;font-weight:700;font-size:11.5px">the hype gap</text>
+        <text x="200" y="104" text-anchor="middle" style="fill:#0B8A80;font-weight:700;font-size:12px">5.8</text>
+        <text x="290" y="115" text-anchor="middle" style="fill:#0B8A80;font-weight:700;font-size:12px">5.1</text>
+        <text x="50" y="152" text-anchor="middle">Day 1</text><text x="110" y="152" text-anchor="middle">Day 7</text>
+        <text x="200" y="152" text-anchor="middle">Day 30</text><text x="290" y="152" text-anchor="middle">Day 90</text>
+      </svg>
+      <div class="legend">
+        <span><i style="background:#F0266F"></i>Hype on social media</span>
+        <span><i style="background:#0B8A80"></i>Verified buyer rating</span>
+      </div>
+      <p class="def"><b>Hype Half-Life</b> is how many days it takes for buyers&rsquo; rating to lose half of its total drop. Most products we track settle after 60+ days; this one fades in 18.</p>
+    </section>
+
+    <div class="flag" role="note">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 21V4h11l-1 4h6v9H9l1-4H4"/></svg>
+      <p><b>7 of the top 10 creator posts</b> show signs of paid promotion without a disclosure.</p>
     </div>
+
+    <section class="panel" aria-label="Top Owner Thread">
+      <div class="panel-head"><h2>Owner Threads</h2><span class="count">312 threads</span></div>
+      <p class="sub">Real owners post on day 1, then update the same thread on day 30 and 90.</p>
+      <div id="previewThread"></div>
+      <button class="link-btn" type="button" data-go="threads">Read all 312 Owner Threads
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>
+      </button>
+    </section>
+
+    <section class="panel" aria-label="Dupes owners kept">
+      <div class="panel-head"><h2>Dupes owners kept</h2><span class="count">Still used at day 90</span></div>
+      <div class="dupe">
+        <span class="mini" style="background:var(--real-soft)"><svg viewBox="0 0 30 44"><rect x="10" y="1" width="10" height="9" rx="2" fill="#0B8A80"/><rect x="4" y="10" width="22" height="33" rx="7" fill="#FFFFFF"/><rect x="8" y="22" width="14" height="3" rx="1.5" fill="#0B8A80"/></svg></span>
+        <div><strong>DailyDew Hydrating Serum</strong><span>Rated 8.1 at day 90 &middot; 76% still using</span></div>
+        <span class="price">$12<small>save $26</small></span>
+      </div>
+      <div class="dupe">
+        <span class="mini" style="background:#EDE7FF"><svg viewBox="0 0 30 44"><rect x="10" y="1" width="10" height="9" rx="2" fill="#5B3FD6"/><rect x="4" y="10" width="22" height="33" rx="7" fill="#FFFFFF"/><rect x="8" y="22" width="14" height="3" rx="1.5" fill="#5B3FD6"/></svg></span>
+        <div><strong>Plain Lab Glow Drops</strong><span>Rated 7.6 at day 90 &middot; 68% still using</span></div>
+        <span class="price">$17<small>save $21</small></span>
+      </div>
+    </section>
+
+    <section class="decide" id="decide" aria-label="Decide">
+      <h2>Still want it?</h2>
+      <p>GlowDrop Dew Serum is $38. Give it 48 hours. If you still want it then, it&rsquo;s not just FOMO.</p>
+      <div class="row">
+        <button class="btn-wait" id="waitBtn" type="button">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2.5M9 2h6"/></svg>
+          <span id="waitText">Wait 48 hours</span>
+        </button>
+        <button class="btn-buy" id="buyBtn" type="button">Buy anyway</button>
+      </div>
+      <p class="note" id="waitNote" hidden></p>
+    </section>
+
+    <p class="footnote">Concept mock-up for Bulldog B.I.T.E. 2026. Products, people and numbers are illustrative.</p>
   </section>
 
-  <section class="sec" aria-label="More products to check">
-    <h2>More to check</h2>
-    <div class="feed" id="feed"></div>
+  <!-- ================= THREADS ================= -->
+  <section class="view" id="view-threads" aria-label="Owner Threads" hidden>
+    <div class="view-title">
+      <h1>Owner Threads</h1>
+      <p>GlowDrop Dew Serum &middot; 312 threads from verified owners</p>
+    </div>
+    <div class="rules" role="note">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3 4 6v6c0 4.5 3.4 8 8 9 4.6-1 8-4.5 8-9V6z"/><path d="m8.5 12 2.5 2.5 4.5-5"/></svg>
+      <p><b>Only owners with a receipt can post.</b> No followers, no likes, no sponsored posts. Anyone can ask owners a question.</p>
+    </div>
+    <div class="filters" role="group" aria-label="Filter threads">
+      <button type="button" data-filter="all" aria-pressed="true">All</button>
+      <button type="button" data-filter="oily" aria-pressed="false">Oily skin</button>
+      <button type="button" data-filter="dry" aria-pressed="false">Dry skin</button>
+      <button type="button" data-filter="sensitive" aria-pressed="false">Sensitive</button>
+      <button type="button" data-filter="using" aria-pressed="false">Still using at day 90</button>
+    </div>
+    <div class="view" id="threadList"></div>
+    <p class="empty" id="threadEmpty" hidden>No threads match this filter yet.</p>
+    <p class="footnote">Concept mock-up. Names and posts are illustrative.</p>
   </section>
 
-  <p class="footnote">Concept mock-up for Bulldog B.I.T.E. 2026. Products, people and numbers are illustrative.</p>
+  <!-- ================= WAIT LIST ================= -->
+  <section class="view" id="view-wait" aria-label="Wait List" hidden>
+    <div class="view-title">
+      <h1>Wait List</h1>
+      <p>Wait 48 hours before a hype buy. We check back with you.</p>
+    </div>
+    <div class="saved">
+      <div><span>Saved this month</span><b id="savedAmt">$39</b></div>
+      <div class="skips"><strong id="skipCount">1</strong>hype buys skipped</div>
+    </div>
+
+    <p class="section-label">Waiting</p>
+    <div id="waitingSlot"><p class="empty">Nothing waiting. Tap <b>Wait 48 hours</b> on any product.</p></div>
+
+    <p class="section-label">Time to decide</p>
+    <article class="wait-item" id="lampItem">
+      <div class="wi-top">
+        <span class="mini" style="background:#FFF0E3"><svg viewBox="0 0 26 32"><circle cx="13" cy="12" r="9" fill="#FF9A3D"/><circle cx="13" cy="12" r="5" fill="#FFD27A"/><rect x="11" y="21" width="4" height="7" rx="1" fill="#151826"/><rect x="6" y="28" width="14" height="3" rx="1.5" fill="#151826"/></svg></span>
+        <div class="txt"><strong>AuraBeam Sunset Lamp</strong><span>$34 &middot; Reality Score 4.9 at day 30</span></div>
+      </div>
+      <div class="due" id="lampDue">
+        <p><b>48 hours are up.</b> 52% of owners stopped using it within a month. Do you still want it?</p>
+        <div class="row">
+          <button class="skip" type="button" id="lampSkip">Skip it</button>
+          <button class="keep" type="button" id="lampKeep">Yes, still want it</button>
+        </div>
+      </div>
+    </article>
+
+    <p class="section-label">Decided</p>
+    <article class="wait-item">
+      <div class="wi-top">
+        <span class="mini" style="background:#EDE7FF"><svg viewBox="0 0 26 32"><path d="M3 20c0-5 4-7 10-7s10 2 10 7v4H3z" fill="#7A5CFF"/><rect x="3" y="24" width="20" height="4" rx="2" fill="#151826"/></svg></span>
+        <div class="txt"><strong>CloudPuff Slides</strong><span>Skipped after 48 hours</span></div>
+      </div>
+      <div class="resolved"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12 5 5 9-10"/></svg>Saved $39</div>
+    </article>
+    <p class="footnote">Concept mock-up. Products and numbers are illustrative.</p>
+  </section>
 </main>
+
+<div class="ask-bar" id="askBar" hidden>
+  <button type="button" id="askBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3C6.5 3 2 6.9 2 11.6c0 2.6 1.4 4.9 3.6 6.5L5 21.5l4-2c1 .3 2 .4 3 .4 5.5 0 10-3.9 10-8.6S17.5 3 12 3Z"/></svg>Ask owners a question</button>
+</div>
 
 <div class="tabs">
   <nav aria-label="App sections">
-    <a href="#" aria-label="Home"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"><path d="M4 11 12 4l8 7v9h-5v-6H9v6H4z"/></svg></a>
-    <a href="#" aria-label="Search" aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></a>
-    <a href="#" aria-label="Add a receipt"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></a>
-    <a href="#" aria-label="Saved"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"><path d="M6 4h12v16l-6-4-6 4z"/></svg></a>
-    <a href="#" class="me" aria-label="Profile"><span>NL</span></a>
+    <button type="button" data-tab="check" aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>Check</button>
+    <button type="button" data-tab="threads"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="6" cy="5" r="2.2"/><circle cx="6" cy="19" r="2.2"/><path d="M6 7.2v9.6"/><path d="M11 5h9M11 12h9M11 19h6"/></svg>Threads</button>
+    <button type="button" data-tab="wait"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2.5M9 2h6"/></svg>Wait List<span class="badge-n" id="waitBadge" hidden>1</span></button>
   </nav>
 </div>
 
+<div class="toast" id="toast" role="status"></div>
+
 <script>
 (function () {
-  // Masonry feed: fictional products with simple drawn art.
-  var art = {
-    tumbler: function (c) { return '<rect x="62" y="40" width="76" height="18" rx="6" fill="#3A3540"/><path d="M58 60h84l-10 150a10 10 0 0 1-10 9H78a10 10 0 0 1-10-9z" fill="' + c + '"/><path d="M142 80c26 0 30 50 6 58" fill="none" stroke="' + c + '" stroke-width="12" stroke-linecap="round"/><rect x="96" y="22" width="8" height="26" rx="4" fill="#3A3540"/><rect x="70" y="70" width="8" height="120" rx="4" fill="#FFFFFF" opacity=".5"/>'; },
-    phones: function (c) { return '<path d="M48 120a52 52 0 0 1 104 0" fill="none" stroke="#3A3540" stroke-width="12" stroke-linecap="round"/><rect x="34" y="112" width="34" height="62" rx="16" fill="' + c + '"/><rect x="132" y="112" width="34" height="62" rx="16" fill="' + c + '"/>'; },
-    gloss: function (c) { return '<rect x="84" y="40" width="32" height="70" rx="10" fill="#3A3540"/><rect x="74" y="104" width="52" height="120" rx="20" fill="' + c + '"/><rect x="84" y="116" width="8" height="90" rx="4" fill="#FFFFFF" opacity=".55"/>'; },
-    shoe: function (c) { return '<path d="M30 140c20-6 40-30 56-50 10 14 30 22 50 24 22 2 38 14 40 30v12H30z" fill="' + c + '"/><rect x="30" y="152" width="146" height="22" rx="8" fill="#FFFFFF"/><path d="M84 104l14 10M74 116l14 10" stroke="#FFFFFF" stroke-width="5" stroke-linecap="round"/>'; },
-    mirror: function (c) { return '<circle cx="100" cy="96" r="56" fill="#FFFFFF" stroke="' + c + '" stroke-width="12"/><circle cx="100" cy="96" r="44" fill="#F3EEF7"/><rect x="92" y="150" width="16" height="40" fill="#3A3540"/><rect x="66" y="188" width="68" height="12" rx="6" fill="#3A3540"/>'; },
-    blanket: function (c) { return '<rect x="34" y="70" width="132" height="110" rx="26" fill="' + c + '"/><path d="M34 110h132M34 140h132" stroke="#FFFFFF" stroke-width="6" opacity=".5"/><path d="M60 70c0 20 80 20 80 0" fill="#FFFFFF" opacity=".35"/>'; }
-  };
-  var pins = [
-    { n: 'Frost Quencher Tumbler 40 oz', a: 'tumbler', c: '#7FA7E8', bg: '#E5EEFB', h: 250, hy: 9.6, re: 7.9 },
-    { n: 'Glaze Lip Oil', a: 'gloss', c: '#F48FB1', bg: '#FDEAF1', h: 220, hy: 9.0, re: 4.6 },
-    { n: 'CloudPods Max', a: 'phones', c: '#C9B8F2', bg: '#F0EBFD', h: 190, hy: 8.4, re: 8.1 },
-    { n: 'AirStep Platform Sneaker', a: 'shoe', c: '#F2A65A', bg: '#FFF0E0', h: 200, hy: 8.8, re: 6.2 },
-    { n: 'Halo LED Vanity Mirror', a: 'mirror', c: '#E7C35A', bg: '#FFF7DD', h: 240, hy: 7.9, re: 3.9 },
-    { n: 'Velvet Cloud Blanket', a: 'blanket', c: '#8CC9A8', bg: '#E6F5EC', h: 210, hy: 8.1, re: 8.4 }
-  ];
-  var dots = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg>';
-  document.getElementById('feed').innerHTML = pins.map(function (p) {
-    var y = (p.h - 240) / 2 + 10;
-    return '<article class="pin"><div class="img" style="background:' + p.bg + ';aspect-ratio:200/' + p.h + '">' +
-      '<svg viewBox="0 ' + (-y) + ' 200 ' + p.h + '" aria-hidden="true">' + art[p.a](p.c) + '</svg>' +
-      '<span class="badge"><span class="h">Hype ' + p.hy.toFixed(1) + '</span><span class="r">Real ' + p.re.toFixed(1) + '</span></span></div>' +
-      '<div class="name"><span>' + p.n + '</span>' + dots + '</div></article>';
-  }).join('');
+  /* ---------- Data (illustrative) ---------- */
+  var COLORS = { good: '#0B8A80', mid: '#B4480E', bad: '#F0266F' };
+  function tone(r) { return r >= 7 ? 'good' : r >= 5 ? 'mid' : 'bad'; }
 
-  // Reveal: Reality score counts up and its meter fills.
-  var REAL = 5.8;
-  var app = document.getElementById('app');
-  var btn = document.getElementById('reveal');
-  var num = document.getElementById('realNum');
-  var hint = document.getElementById('realHint');
-  var verdict = document.getElementById('verdict');
+  var THREADS = [
+    { id: 'maya', name: 'Maya R.', skin: 'Combination, oily T-zone', tags: ['oily'], owned: 92, bg: '#FFE3EE', helped: 230,
+      posts: [
+        { day: 1, r: 9, text: 'The glow is unreal. Looks exactly like the videos.' },
+        { day: 30, r: 6, text: 'Starting to pill under foundation. The glow is gone by noon.' },
+        { day: 90, r: 4, text: 'Stopped using it. A $12 drugstore serum does the same for me.', stopped: true }
+      ] },
+    { id: 'priya', name: 'Priya S.', skin: 'Dry skin', tags: ['dry', 'using'], owned: 95, bg: '#DDF3F0', helped: 184,
+      posts: [
+        { day: 1, r: 8, text: 'Very hydrating. Strong scent at first.' },
+        { day: 30, r: 8, text: 'Still using it every morning. Flaky patches are gone.' },
+        { day: 90, r: 8, text: 'On my second bottle. Great for dry skin, but I would skip it if you are oily.' }
+      ] },
+    { id: 'jordan', name: 'Jordan K.', skin: 'Sensitive skin', tags: ['sensitive'], owned: 9, bg: '#FFF0E3', helped: 141,
+      posts: [
+        { day: 1, r: 7, text: 'Smells strong, but my skin feels soft.' },
+        { day: 7, r: 3, text: 'Red patches on both cheeks. Fragrance is high on the ingredient list.', stopped: true, stopLabel: 'Returned on day 9' }
+      ] },
+    { id: 'ana', name: 'Ana T.', skin: 'Normal skin', tags: [], owned: 33, bg: '#EDE7FF', helped: 57,
+      posts: [
+        { day: 1, r: 9, text: 'Bought it after the video. Packaging is gorgeous.' },
+        { day: 30, r: 6, text: 'Fine, not magic. I mostly bought it because everyone had it.' },
+        { day: 90, pending: true, text: 'Day 90 update due in 57 days' }
+      ] }
+  ];
+  var QUESTION = { tags: ['oily'], asker: 'Lena M.', q: 'Does it pill under sunscreen? I have oily skin.',
+    answers: [
+      { name: 'Maya R.', owned: 92, text: 'Yes with mineral sunscreen. It is fine under a gel sunscreen.' },
+      { name: 'Chris D.', owned: 64, text: 'Pilled for me too. Patting it in and waiting 2 minutes helped a bit.' }
+    ] };
+
+  var CHECK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12 5 5 9-10"/></svg>';
+  var HELP = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 11v9H4v-9zM7 11l4-8c1.7 0 2.7 1.2 2.4 2.8L13 9h5.5a2 2 0 0 1 2 2.4l-1.3 6.8a2 2 0 0 1-2 1.8H7"/></svg>';
+
+  function initials(n) { return n.split(' ').map(function (p) { return p[0]; }).join('').replace('.', ''); }
+
+  function threadHTML(t) {
+    var items = t.posts.map(function (p) {
+      if (p.pending) {
+        return '<li class="pending"><span class="dot" style="color:#C9CDD8"></span>' +
+          '<div class="when">Day 90</div><p>' + p.text + '</p></li>';
+      }
+      var c = COLORS[tone(p.r)];
+      return '<li><span class="dot" style="color:' + c + '"></span>' +
+        '<div class="when" style="color:' + c + '">Day ' + p.day + '<span class="r">' + p.r + '/10</span></div>' +
+        '<p>' + p.text + '</p>' +
+        (p.stopped ? '<span class="stopped">' + (p.stopLabel || 'Stopped using it') + '</span>' : '') + '</li>';
+    }).join('');
+    return '<article class="thread" data-tags="' + t.tags.join(' ') + '">' +
+      '<div class="t-head"><span class="pic" style="background:' + t.bg + '">' + initials(t.name) + '</span>' +
+      '<div class="meta"><div class="name">' + t.name + ' <small>' + t.skin + '</small></div>' +
+      '<div><span class="chip ok">' + CHECK + 'Receipt verified</span> <span class="chip owned">Owned ' + t.owned + ' days</span></div></div></div>' +
+      '<ol class="chain">' + items + '</ol>' +
+      '<div class="t-foot"><span class="helped">' + HELP + 'Helped ' + t.helped + ' people decide</span>' +
+      '<button type="button" data-ask="' + t.name + '">Ask ' + t.name.split(' ')[0] + '</button></div></article>';
+  }
+
+  function questionHTML(q) {
+    var ans = q.answers.map(function (a) {
+      return '<div class="answer"><div class="who">' + a.name + ' <span class="chip owned">Owned ' + a.owned + ' days</span></div><p>' + a.text + '</p></div>';
+    }).join('');
+    return '<article class="thread" data-tags="' + q.tags.join(' ') + '">' +
+      '<div class="t-head"><span class="pic" style="background:#EEF1F6">' + initials(q.asker) + '</span>' +
+      '<div class="meta"><div class="name">' + q.asker + '</div><div><span class="chip ask">Asking owners</span></div></div></div>' +
+      '<p class="question">' + q.q + '</p><div class="answers">' + ans + '</div></article>';
+  }
+
+  var list = document.getElementById('threadList');
+  list.innerHTML = threadHTML(THREADS[0]) + questionHTML(QUESTION) + threadHTML(THREADS[1]) + threadHTML(THREADS[2]) + threadHTML(THREADS[3]);
+  document.getElementById('previewThread').innerHTML = threadHTML(THREADS[0]).replace('class="thread"', 'class="thread" style="padding:0"');
+
+  /* ---------- Toast ---------- */
+  var toastEl = document.getElementById('toast'), toastT = 0;
+  function toast(msg) {
+    toastEl.textContent = msg; toastEl.classList.add('show');
+    clearTimeout(toastT); toastT = setTimeout(function () { toastEl.classList.remove('show'); }, 2600);
+  }
+
+  /* ---------- Tabs ---------- */
+  var views = { check: 'view-check', threads: 'view-threads', wait: 'view-wait' };
+  var askBar = document.getElementById('askBar');
+  function go(tab) {
+    Object.keys(views).forEach(function (k) { document.getElementById(views[k]).hidden = k !== tab; });
+    document.querySelectorAll('.tabs button').forEach(function (b) {
+      if (b.dataset.tab === tab) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current');
+    });
+    askBar.hidden = tab !== 'threads';
+    window.scrollTo(0, 0);
+  }
+  document.querySelectorAll('[data-tab]').forEach(function (b) { b.addEventListener('click', function () { go(b.dataset.tab); }); });
+  document.querySelectorAll('[data-go]').forEach(function (b) { b.addEventListener('click', function () { go(b.dataset.go); }); });
+
+  /* ---------- Thread filters ---------- */
+  var filterBtns = document.querySelectorAll('.filters button');
+  filterBtns.forEach(function (b) {
+    b.addEventListener('click', function () {
+      filterBtns.forEach(function (x) { x.setAttribute('aria-pressed', String(x === b)); });
+      var f = b.dataset.filter, shown = 0;
+      list.querySelectorAll('.thread').forEach(function (t) {
+        var ok = f === 'all' || (' ' + t.dataset.tags + ' ').indexOf(' ' + f + ' ') > -1;
+        t.hidden = !ok; if (ok) shown++;
+      });
+      document.getElementById('threadEmpty').hidden = shown > 0;
+    });
+  });
+  document.addEventListener('click', function (e) {
+    var a = e.target.closest('[data-ask]');
+    if (a) toast('Question sent to ' + a.dataset.ask + '. Owners usually reply within a day.');
+  });
+  document.getElementById('askBtn').addEventListener('click', function () {
+    toast('Your question goes to 312 verified owners.');
+  });
+
+  /* ---------- Score gauge ---------- */
+  var HYPE = 9.2, REAL = 5.8, C = 2 * Math.PI * 88, ARC = C * 0.75;
+  var score = document.getElementById('score'), bar = document.getElementById('bar');
+  var num = document.getElementById('num'), labelText = document.getElementById('labelText');
+  var verdict = document.getElementById('verdict'), revealText = document.getElementById('revealText');
   var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   var shown = false, raf = 0;
-
-  function countUp(to, ms) {
+  function dash(v) { return (ARC * v / 10) + ' ' + C; }
+  document.getElementById('track').setAttribute('stroke-dasharray', ARC + ' ' + C);
+  document.getElementById('ghost').setAttribute('stroke-dasharray', dash(HYPE));
+  bar.setAttribute('stroke-dasharray', dash(HYPE));
+  function countTo(from, to, ms) {
     cancelAnimationFrame(raf);
     if (reduce) { num.textContent = to.toFixed(1); return; }
     var t0 = performance.now();
     (function step(t) {
-      var p = Math.min(1, (t - t0) / ms), e = 1 - Math.pow(1 - p, 3);
-      num.textContent = (to * e).toFixed(1);
+      var p = Math.min(1, (t - t0) / ms), e = p < .5 ? 2 * p * p : 1 - Math.pow(-2 * p + 2, 2) / 2;
+      num.textContent = (from + (to - from) * e).toFixed(1);
       if (p < 1) raf = requestAnimationFrame(step);
     })(t0);
   }
-  function show() {
-    shown = true; app.classList.add('is-real');
-    countUp(REAL, 1200);
-    hint.textContent = 'From verified buyers';
-    verdict.hidden = false;
-    btn.textContent = 'Checked'; btn.classList.add('done');
+  function showReality() {
+    shown = true; score.classList.add('is-real'); bar.setAttribute('stroke-dasharray', dash(REAL));
+    countTo(HYPE, REAL, 1300); labelText.textContent = 'Reality after 30 days';
+    verdict.innerHTML = '<strong>41% of verified buyers</strong> regret it after 30 days.';
+    revealText.textContent = 'Show the hype again';
   }
-  function reset() {
-    shown = false; app.classList.remove('is-real'); cancelAnimationFrame(raf);
-    num.textContent = '?'; hint.textContent = 'Tap Check reality';
-    verdict.hidden = true;
-    btn.textContent = 'Check reality'; btn.classList.remove('done');
+  function showHype() {
+    shown = false; score.classList.remove('is-real'); bar.setAttribute('stroke-dasharray', dash(HYPE));
+    countTo(parseFloat(num.textContent) || REAL, HYPE, 700); labelText.textContent = 'Hype Score';
+    verdict.textContent = 'Everyone is posting about it. How does it hold up after the hype?';
+    revealText.textContent = 'Check the reality';
   }
-  btn.addEventListener('click', function () { shown ? reset() : show(); });
-  // Double-tap the product image to reset between takes.
-  document.getElementById('hero').addEventListener('dblclick', reset);
-  document.getElementById('like').addEventListener('click', function () { this.classList.toggle('on'); });
-  document.querySelectorAll('.tabs a').forEach(function (a) { a.addEventListener('click', function (e) { e.preventDefault(); }); });
+  document.getElementById('reveal').addEventListener('click', function () { shown ? showHype() : showReality(); });
+
+  /* ---------- Wait 48 hours ---------- */
+  var decide = document.getElementById('decide'), waitText = document.getElementById('waitText');
+  var waitNote = document.getElementById('waitNote'), waitBadge = document.getElementById('waitBadge');
+  var slot = document.getElementById('waitingSlot');
+  var EMPTY_WAIT = slot.innerHTML, waitEnd = 0, timerT = 0, waiting = false;
+
+  function fmtBack(d) {
+    return d.toLocaleDateString('en-US', { weekday: 'short' }) + ' at ' + d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+  }
+  function pad(n) { return (n < 10 ? '0' : '') + n; }
+  function tick() {
+    var ms = Math.max(0, waitEnd - Date.now()), s = Math.floor(ms / 1000);
+    var el = document.getElementById('timer'), pr = document.getElementById('waitProg');
+    if (!el) return;
+    el.firstChild.nodeValue = Math.floor(s / 3600) + ':' + pad(Math.floor(s / 60) % 60) + ':' + pad(s % 60);
+    pr.style.width = (100 - ms / (48 * 36000)) + '%';
+  }
+  function startWait() {
+    waiting = true; waitEnd = Date.now() + 48 * 3600 * 1000;
+    decide.classList.add('is-waiting'); waitText.textContent = 'Added to Wait List';
+    waitNote.hidden = false; waitNote.textContent = 'We will check back ' + fmtBack(new Date(waitEnd)) + ' with the latest Reality Score.';
+    waitBadge.hidden = false;
+    slot.innerHTML = '<article class="wait-item"><div class="wi-top">' +
+      '<span class="mini" style="background:linear-gradient(160deg,#FFD6E6,#F7A8C6)"><svg viewBox="0 0 30 44"><rect x="10" y="1" width="10" height="9" rx="2" fill="#151826"/><rect x="4" y="10" width="22" height="33" rx="7" fill="#FFFFFF" opacity=".92"/><rect x="8" y="22" width="14" height="3" rx="1.5" fill="#F0266F"/></svg></span>' +
+      '<div class="txt"><strong>GlowDrop Dew Serum</strong><span>$38 &middot; Reality Score 5.8</span></div>' +
+      '<div class="timer" id="timer">48:00:00<small>left to cool off</small></div></div>' +
+      '<div class="progress"><i id="waitProg" style="width:0%"></i></div></article>';
+    clearInterval(timerT); tick(); timerT = setInterval(tick, 1000);
+    toast('Added to your Wait List. We will check back in 48 hours.');
+  }
+  document.getElementById('waitBtn').addEventListener('click', function () {
+    if (waiting) { go('wait'); return; }
+    startWait();
+  });
+  document.getElementById('buyBtn').addEventListener('click', function () {
+    toast('Concept demo: this would open the store you choose.');
+  });
+
+  /* ---------- Decision on the lamp ---------- */
+  var saved = 39, skips = 1;
+  var lampDue = document.getElementById('lampDue'), LAMP_HTML = lampDue.innerHTML;
+  function bindLamp() {
+    document.getElementById('lampSkip').addEventListener('click', function () {
+      saved += 34; skips += 1; renderSaved();
+      lampDue.outerHTML = '<div class="resolved" id="lampDue">' + CHECK + 'Skipped. Saved $34</div>';
+      lampDue = document.getElementById('lampDue');
+      toast('Nice. That is $34 that stayed in your wallet.');
+    });
+    document.getElementById('lampKeep').addEventListener('click', function () {
+      lampDue.outerHTML = '<div class="resolved" id="lampDue" style="color:var(--ink)">' + CHECK + 'You waited and still want it. Enjoy it!</div>';
+      lampDue = document.getElementById('lampDue');
+    });
+  }
+  function renderSaved() {
+    document.getElementById('savedAmt').textContent = '$' + saved;
+    document.getElementById('skipCount').textContent = skips;
+  }
+  bindLamp();
+
+  /* ---------- Intro: share from the video ---------- */
+  var intro = document.getElementById('intro'), steps = document.querySelectorAll('#steps li'), introT = [];
+  function openSheet() { intro.classList.add('sheet-open'); }
+  document.getElementById('shareBtn').addEventListener('click', openSheet);
+  document.querySelector('.video').addEventListener('click', openSheet);
+  document.getElementById('scrim').addEventListener('click', function () { intro.classList.remove('sheet-open'); });
+  document.getElementById('openHC').addEventListener('click', function () {
+    intro.classList.add('scanning');
+    var d = reduce ? 150 : 520;
+    steps.forEach(function (li, i) { introT.push(setTimeout(function () { li.classList.add('done'); }, d * (i + 1))); });
+    introT.push(setTimeout(function () {
+      intro.classList.add('gone'); document.body.classList.remove('locked'); window.scrollTo(0, 0);
+    }, d * 4 + 200));
+  });
+
+  /* ---------- Reset the whole demo: double-tap the logo ---------- */
+  document.getElementById('brand').addEventListener('dblclick', function () {
+    introT.forEach(clearTimeout); introT = [];
+    intro.classList.remove('gone', 'scanning', 'sheet-open'); document.body.classList.add('locked');
+    steps.forEach(function (li) { li.classList.remove('done'); });
+    showHype(); go('check');
+    waiting = false; clearInterval(timerT); decide.classList.remove('is-waiting');
+    waitText.textContent = 'Wait 48 hours'; waitNote.hidden = true; waitBadge.hidden = true; slot.innerHTML = EMPTY_WAIT;
+    saved = 39; skips = 1; renderSaved();
+    lampDue.outerHTML = '<div class="due" id="lampDue">' + LAMP_HTML + '</div>';
+    lampDue = document.getElementById('lampDue'); bindLamp();
+    document.querySelector('.filters button[data-filter="all"]').click();
+  });
 })();
 </script>
-
 </body>
 </html>
