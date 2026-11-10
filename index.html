@@ -3,12 +3,12 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#EEF1F6">
+<meta name="theme-color" content="#FFFFFF">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="HypeCheck">
-<meta name="description" content="HypeCheck concept mock-up v2: check a viral product straight from the video, read Owner Threads, and wait 48 hours before you buy.">
+<meta name="description" content="HypeCheck concept mock-up v3: a social network for shoppers where only receipt-verified buyers can post, and anyone can ask them questions.">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <title>HypeCheck</title>
@@ -16,871 +16,696 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700&family=Instrument+Sans:wght@400;500;600;700&display=swap">
 <style>
-/* Single light theme on purpose: the phone should read the same on camera and on stage. */
+/* Single light theme on purpose: the phone should read the same on stage and on camera. */
 :root {
-  --paper: #EEF1F6;
-  --card: #FFFFFF;
+  --bg: #FFFFFF;
+  --soft: #F3F4F8;
   --ink: #151826;
-  --muted: #5B6073;
-  --line: #DCE0EA;
+  --muted: #6B7084;
+  --line: #E4E6EE;
   --hype: #F0266F;
   --hype-soft: #FFE3EE;
   --real: #0B8A80;
   --real-soft: #DDF3F0;
   --flag: #B4480E;
   --flag-soft: #FFF0E3;
+  --streak: #FF7A1A;
   --display: "Unbounded", "Arial Black", system-ui, sans-serif;
   --body: "Instrument Sans", "Helvetica Neue", Arial, system-ui, sans-serif;
   color-scheme: light;
 }
 * { box-sizing: border-box; }
-html, body { background: var(--paper); }
-body {
-  margin: 0; color: var(--ink); font-family: var(--body);
-  font-size: 15px; line-height: 1.45; -webkit-font-smoothing: antialiased;
-}
-body.locked { overflow: hidden; }
-button { font: inherit; color: inherit; cursor: pointer; }
-:focus-visible { outline: 3px solid var(--ink); outline-offset: 2px; border-radius: 10px; }
+html, body { background: var(--bg); }
+body { margin: 0; color: var(--ink); font-family: var(--body); font-size: 15px; line-height: 1.42; -webkit-font-smoothing: antialiased; }
+button { font: inherit; color: inherit; cursor: pointer; background: none; border: 0; padding: 0; }
+:focus-visible { outline: 3px solid var(--ink); outline-offset: 2px; border-radius: 8px; }
 [hidden] { display: none !important; }
+svg { flex: none; }
 
-.app {
-  max-width: 430px; margin: 0 auto;
-  padding-left: max(16px, env(safe-area-inset-left, 0px));
-  padding-right: max(16px, env(safe-area-inset-right, 0px));
-  padding-top: calc(12px + env(safe-area-inset-top, 0px));
-  padding-bottom: calc(96px + env(safe-area-inset-bottom, 0px));
+.shell { max-width: 480px; margin: 0 auto; min-height: 100dvh; position: relative; }
+
+/* ---------- App bar ---------- */
+.appbar {
+  position: sticky; top: 0; z-index: 6; background: rgba(255,255,255,.96);
+  backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+  padding: calc(8px + env(safe-area-inset-top, 0px)) 16px 0;
 }
-.view { display: flex; flex-direction: column; gap: 14px; }
+.bar-row { height: 44px; display: grid; grid-template-columns: 44px 1fr 44px; align-items: center; }
+.logo { justify-self: center; display: grid; place-items: center; width: 44px; height: 44px; }
+.logo svg { width: 32px; height: 32px; }
+.bar-title { justify-self: center; font-weight: 700; font-size: 16px; }
+.back { width: 40px; height: 40px; display: grid; place-items: center; border-radius: 50%; }
+.back svg { width: 22px; height: 22px; }
+.feed-tabs { display: grid; grid-template-columns: repeat(3, 1fr); border-bottom: 1px solid var(--line); margin: 0 -16px; }
+.feed-tabs button { padding: 12px 0 11px; font-weight: 600; font-size: 14.5px; color: var(--muted); border-bottom: 2px solid transparent; }
+.feed-tabs button[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--ink); }
 
-/* ---------- Top bar ---------- */
-.top { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
-.brand {
-  display: flex; align-items: center; gap: 8px; background: none; border: 0; padding: 4px 0;
-  font-family: var(--display); font-weight: 700; font-size: 20px; letter-spacing: -0.02em;
+main { padding-bottom: calc(76px + env(safe-area-inset-bottom, 0px)); }
+main.with-composer { padding-bottom: calc(150px + env(safe-area-inset-bottom, 0px)); }
+
+/* ---------- Posts (thread style) ---------- */
+.post { padding: 14px 16px 10px; border-bottom: 1px solid var(--line); }
+.post.tappable { cursor: pointer; }
+.entry { display: grid; grid-template-columns: 40px 1fr; column-gap: 10px; }
+.rail { display: flex; flex-direction: column; align-items: center; }
+.rail .thread-line { flex: 1; width: 2px; background: var(--line); margin: 6px 0 2px; border-radius: 2px; min-height: 12px; }
+.av { width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center; font-weight: 700; font-size: 13px; color: var(--ink); flex: none; }
+.av.sm { width: 28px; height: 28px; font-size: 11px; }
+.entry-body { min-width: 0; padding-bottom: 12px; }
+.entry:last-child .entry-body { padding-bottom: 2px; }
+.who { display: flex; align-items: center; gap: 5px; flex-wrap: wrap; font-size: 14.5px; }
+.who b { font-weight: 700; }
+.who .t { color: var(--muted); }
+.verified { width: 15px; height: 15px; color: var(--real); }
+.streak-mini { display: inline-flex; align-items: center; gap: 2px; color: var(--streak); font-weight: 700; font-size: 12.5px; }
+.streak-mini svg { width: 13px; height: 13px; }
+.sub { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-top: 2px; font-size: 12.5px; color: var(--muted); }
+.day {
+  display: inline-flex; align-items: center; gap: 4px; font-size: 11.5px; font-weight: 700;
+  padding: 2px 8px; border-radius: 999px; background: var(--soft); color: var(--ink);
 }
-.brand svg { width: 30px; height: 30px; flex: none; }
-.avatar {
-  width: 34px; height: 34px; border-radius: 50%; background: var(--ink); color: var(--card);
-  display: grid; place-items: center; font-weight: 600; font-size: 13px;
+.day .r { font-variant-numeric: tabular-nums; }
+.day.good { background: var(--real-soft); color: var(--real); }
+.day.mid { background: var(--flag-soft); color: var(--flag); }
+.day.bad { background: var(--hype-soft); color: var(--hype); }
+.txt { margin: 6px 0 0; white-space: pre-line; }
+
+.product { margin-top: 10px; border: 1px solid var(--line); border-radius: 16px; overflow: hidden; }
+.pimg { height: 168px; display: grid; place-items: center; position: relative; }
+.pimg svg { height: 120px; width: auto; filter: drop-shadow(0 14px 18px rgba(21,24,38,.18)); }
+.pimg .store-tag { position: absolute; left: 10px; top: 10px; background: rgba(255,255,255,.92); border-radius: 999px; padding: 3px 9px; font-size: 12px; font-weight: 600; }
+.pbar { display: flex; align-items: center; gap: 10px; padding: 10px 12px; }
+.pbar div { min-width: 0; flex: 1; }
+.pbar strong { display: block; font-size: 14px; line-height: 1.25; }
+.pbar span { font-size: 12.5px; color: var(--muted); }
+.buy { flex: none; text-decoration: none; display: inline-flex; align-items: center; gap: 5px; background: var(--ink); color: #fff; border-radius: 999px; padding: 8px 13px; font-weight: 600; font-size: 13px; }
+.buy svg { width: 13px; height: 13px; }
+.disclose { margin: 0; padding: 0 12px 10px; font-size: 11.5px; color: var(--muted); text-wrap: balance; }
+
+.scores { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; }
+.sc { display: inline-flex; align-items: center; gap: 5px; border-radius: 999px; padding: 4px 10px; font-size: 12.5px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.sc.h { background: var(--hype-soft); color: var(--hype); }
+.sc.r { background: var(--real-soft); color: var(--real); }
+.sc.g { background: var(--soft); color: var(--ink); }
+.sc.wait { background: var(--soft); color: var(--muted); font-weight: 600; }
+
+.actions { display: flex; gap: 4px; margin: 8px 0 0 -8px; }
+.act { display: inline-flex; align-items: center; gap: 5px; padding: 6px 8px; border-radius: 999px; font-size: 13.5px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.act svg { width: 19px; height: 19px; }
+.act.on { color: var(--real); font-weight: 700; }
+.act.ask { color: var(--ink); font-weight: 600; }
+
+.due { margin-top: 6px; font-size: 13px; color: var(--muted); font-style: italic; }
+
+/* ---------- Detail: questions ---------- */
+.q-head { display: flex; align-items: baseline; justify-content: space-between; padding: 14px 16px 6px; }
+.q-head h2 { margin: 0; font-size: 15.5px; }
+.q-head span { font-size: 13px; color: var(--muted); }
+.rule { margin: 4px 16px 6px; padding: 10px 12px; background: var(--real-soft); border-radius: 12px; font-size: 13px; display: flex; gap: 8px; align-items: flex-start; }
+.rule svg { width: 17px; height: 17px; color: var(--real); margin-top: 1px; }
+.qa { padding: 12px 16px 6px; border-bottom: 1px solid var(--line); }
+.qa.fresh { animation: flash 1.6s ease-out; }
+@keyframes flash { from { background: #FFF6D6; } to { background: transparent; } }
+.qa .entry-body { padding-bottom: 10px; }
+.owner-chip { font-size: 11px; font-weight: 700; padding: 2px 7px; border-radius: 999px; background: var(--ink); color: #fff; }
+.asker-chip { font-size: 11px; font-weight: 700; padding: 2px 7px; border-radius: 999px; background: var(--flag-soft); color: var(--flag); }
+.typing { display: inline-flex; gap: 4px; padding: 10px 0 6px; }
+.typing i { width: 7px; height: 7px; border-radius: 50%; background: var(--muted); animation: dot 1s infinite; }
+.typing i:nth-child(2) { animation-delay: .15s; } .typing i:nth-child(3) { animation-delay: .3s; }
+@keyframes dot { 50% { opacity: .25; transform: translateY(-2px); } }
+
+.composer {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 7; background: rgba(255,255,255,.97);
+  backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-top: 1px solid var(--line);
+  padding: 8px 0 calc(10px + env(safe-area-inset-bottom, 0px));
 }
-
-/* ---------- Source + product ---------- */
-.source {
-  display: flex; align-items: center; gap: 10px; background: var(--card); border: 1px solid var(--line);
-  border-radius: 14px; padding: 10px 12px; font-size: 13.5px; color: var(--muted);
+.composer .inner { max-width: 480px; margin: 0 auto; padding: 0 12px; display: flex; flex-direction: column; gap: 8px; }
+.suggest { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; }
+.suggest::-webkit-scrollbar { display: none; }
+.suggest button { flex: none; border: 1px solid var(--line); border-radius: 999px; padding: 6px 11px; font-size: 13px; font-weight: 500; background: #fff; }
+.input-row { display: flex; gap: 8px; align-items: center; }
+.input-row input {
+  flex: 1; min-width: 0; font: inherit; font-size: 16px; border: 1px solid var(--line); background: var(--soft);
+  border-radius: 999px; padding: 10px 14px; color: var(--ink);
 }
-.source .play {
-  width: 30px; height: 30px; border-radius: 9px; flex: none; display: grid; place-items: center;
-  background: linear-gradient(160deg, #2A1530, #151826); color: #fff;
+.send { width: 40px; height: 40px; border-radius: 50%; background: var(--ink); color: #fff; display: grid; place-items: center; }
+.send:disabled { opacity: .3; }
+.send svg { width: 18px; height: 18px; }
+
+/* ---------- Bottom nav ---------- */
+.nav {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 6; background: rgba(255,255,255,.96);
+  backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-top: 1px solid var(--line);
+  padding: 6px 0 calc(6px + env(safe-area-inset-bottom, 0px));
 }
-.source .play svg { width: 12px; height: 12px; }
-.source b { color: var(--ink); font-weight: 600; }
-.source .found { margin-left: auto; color: var(--real); font-weight: 600; font-size: 12.5px; white-space: nowrap; }
+.nav .inner { max-width: 480px; margin: 0 auto; display: grid; grid-template-columns: repeat(5, 1fr); }
+.nav button { height: 48px; display: grid; place-items: center; color: #A3A7B7; position: relative; }
+.nav button svg { width: 26px; height: 26px; }
+.nav button[aria-current="page"] { color: var(--ink); }
+.nav .plus span { width: 52px; height: 40px; border-radius: 12px; background: var(--soft); display: grid; place-items: center; color: var(--ink); }
+.nav .plus svg { width: 22px; height: 22px; }
+.dot-n { position: absolute; top: 9px; left: calc(50% + 7px); width: 8px; height: 8px; border-radius: 50%; background: var(--hype); }
 
-.product { display: flex; gap: 14px; align-items: center; }
-.thumb {
-  width: 64px; height: 64px; border-radius: 16px; flex: none;
-  background: linear-gradient(160deg, #FFD6E6, #FFC2D9 55%, #F7A8C6); display: grid; place-items: center;
+/* ---------- Search ---------- */
+.pad { padding: 12px 16px; }
+.search-box { display: flex; align-items: center; gap: 10px; background: var(--soft); border-radius: 14px; padding: 11px 14px; color: var(--muted); font-size: 15px; }
+.search-box svg { width: 18px; height: 18px; }
+.sec-label { margin: 18px 16px 6px; font-size: 13px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; }
+.trend-row { display: flex; align-items: center; gap: 12px; padding: 10px 16px; width: 100%; text-align: left; border-bottom: 1px solid var(--line); }
+.trend-row .mini { width: 52px; height: 52px; border-radius: 14px; display: grid; place-items: center; flex: none; }
+.trend-row .mini svg { height: 38px; width: auto; }
+.trend-row .info { min-width: 0; flex: 1; }
+.trend-row strong { display: block; font-size: 15px; }
+.gap { display: flex; align-items: center; gap: 8px; margin-top: 4px; font-size: 12.5px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.gapbar { position: relative; flex: 1; max-width: 120px; height: 6px; background: var(--soft); border-radius: 99px; }
+.gapbar i { position: absolute; top: 0; bottom: 0; border-radius: 99px; background: linear-gradient(90deg, var(--real), var(--hype)); }
+
+/* ---------- Activity ---------- */
+.view-h { margin: 6px 16px 4px; font-family: var(--display); font-weight: 500; font-size: 24px; letter-spacing: -.02em; }
+.notif { display: grid; grid-template-columns: 40px 1fr auto; gap: 10px; align-items: center; padding: 12px 16px; border-bottom: 1px solid var(--line); }
+.notif .ico { width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center; }
+.notif .ico svg { width: 18px; height: 18px; }
+.notif p { margin: 0; font-size: 14.5px; }
+.notif p span { color: var(--muted); }
+.pill { border: 1px solid var(--line); border-radius: 10px; padding: 7px 12px; font-weight: 600; font-size: 13px; }
+.pill.dark { background: var(--ink); color: #fff; border-color: var(--ink); }
+
+/* ---------- Profile ---------- */
+.prof-top { display: flex; justify-content: space-between; gap: 12px; padding: 14px 16px 0; }
+.prof-top h1 { margin: 0; font-size: 24px; font-weight: 700; letter-spacing: -.01em; }
+.prof-top .handle { color: var(--muted); font-size: 14.5px; }
+.prof-top .av { width: 64px; height: 64px; font-size: 22px; }
+.bio { margin: 10px 16px 0; font-size: 14.5px; }
+.badges { display: flex; flex-wrap: wrap; gap: 6px; margin: 10px 16px 0; }
+.badge { display: inline-flex; align-items: center; gap: 5px; font-size: 12.5px; font-weight: 700; border-radius: 999px; padding: 4px 10px; }
+.badge svg { width: 14px; height: 14px; }
+.badge.trust { background: var(--real-soft); color: var(--real); }
+.badge.found { background: #EDE7FF; color: #5B3FD6; }
+.stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 14px 16px 0; }
+.stat { background: var(--soft); border-radius: 14px; padding: 10px; }
+.stat b { display: flex; align-items: center; gap: 4px; font-family: var(--display); font-weight: 500; font-size: 20px; letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
+.stat b svg { width: 18px; height: 18px; color: var(--streak); }
+.stat span { font-size: 12.5px; color: var(--muted); }
+.card { margin: 12px 16px 0; border: 1px solid var(--line); border-radius: 18px; padding: 14px; display: flex; flex-direction: column; gap: 10px; }
+.card h3 { margin: 0; font-size: 15px; }
+.card p { margin: 0; font-size: 13.5px; color: var(--muted); }
+.week { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; text-align: center; font-size: 11.5px; color: var(--muted); }
+.week i { display: grid; place-items: center; width: 30px; height: 30px; margin: 0 auto 3px; border-radius: 50%; background: var(--soft); }
+.week i.on { background: var(--streak); color: #fff; }
+.week i.today { box-shadow: 0 0 0 2px #fff, 0 0 0 4px var(--streak); }
+.week i svg { width: 15px; height: 15px; }
+.progress { height: 8px; border-radius: 99px; background: var(--soft); overflow: hidden; }
+.progress i { display: block; height: 100%; background: var(--real); border-radius: 99px; transition: width .5s; }
+.prof-tabs { display: grid; grid-template-columns: 1fr 1fr; border-bottom: 1px solid var(--line); margin-top: 14px; }
+.prof-tabs span { text-align: center; padding: 11px 0; font-weight: 600; font-size: 14.5px; color: var(--muted); }
+.prof-tabs span.on { color: var(--ink); border-bottom: 2px solid var(--ink); }
+
+.foot { color: var(--muted); font-size: 12px; text-align: center; margin: 18px 16px 8px; }
+
+/* ---------- Compose sheet ---------- */
+.scrim { position: fixed; inset: 0; z-index: 20; background: rgba(21,24,38,.4); opacity: 0; pointer-events: none; transition: opacity .25s; }
+.scrim.open { opacity: 1; pointer-events: auto; }
+.sheet {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 21; max-width: 480px; margin: 0 auto;
+  background: #fff; border-radius: 22px 22px 0 0; padding: 10px 16px calc(18px + env(safe-area-inset-bottom, 0px));
+  transform: translateY(105%); visibility: hidden; transition: transform .35s cubic-bezier(.2,.8,.2,1), visibility 0s .35s;
+  max-height: 92dvh; overflow-y: auto;
 }
-.thumb svg { width: 30px; height: 44px; }
-.product h1 { margin: 0; font-family: var(--display); font-weight: 500; font-size: 19px; line-height: 1.2; letter-spacing: -0.01em; text-wrap: balance; }
-.product p { margin: 3px 0 0; color: var(--muted); font-size: 13.5px; }
-.trend { color: var(--hype); font-weight: 600; }
-
-/* ---------- Score card ---------- */
-.score {
-  background: var(--card); border-radius: 26px; padding: 18px 18px 20px;
-  display: flex; flex-direction: column; align-items: center; gap: 4px;
-  box-shadow: 0 1px 0 var(--line), 0 18px 40px -26px rgba(21, 24, 38, 0.35);
-  --tone: var(--hype); --tone-soft: var(--hype-soft);
-}
-.score.is-real { --tone: var(--real); --tone-soft: var(--real-soft); }
-.score-label {
-  display: inline-flex; align-items: center; gap: 6px; font-weight: 600; font-size: 14px;
-  color: var(--tone); background: var(--tone-soft); padding: 5px 12px; border-radius: 999px;
-  transition: color .6s, background-color .6s;
-}
-.gauge { position: relative; width: 236px; max-width: 100%; aspect-ratio: 1 / 0.86; }
-.gauge svg { width: 100%; height: 100%; display: block; overflow: visible; }
-.gauge .track { stroke: var(--line); }
-.gauge .bar { stroke: var(--tone); transition: stroke-dasharray 1.3s cubic-bezier(.6,0,.2,1), stroke .6s; }
-.gauge .ghost { stroke: var(--hype); opacity: 0; transition: opacity .4s .9s; }
-.score.is-real .gauge .ghost { opacity: .22; }
-/* Centered on the ring's center (y 110 of 190 in the SVG), sized to sit inside the ring with room to breathe. */
-.gauge-num {
-  position: absolute; left: 0; right: 0; top: 57.9%; transform: translateY(-50%);
-  display: flex; flex-direction: column; align-items: center; text-align: center;
-}
-.num {
-  font-family: var(--display); font-weight: 700; font-size: 58px; line-height: 1;
-  letter-spacing: -0.03em; color: var(--tone); font-variant-numeric: tabular-nums; transition: color .6s;
-}
-.out { color: var(--muted); font-size: 13px; font-weight: 500; margin-top: 8px; }
-.was {
-  font-size: 12px; color: var(--hype); font-weight: 700; margin-top: 6px; padding: 2px 8px;
-  border-radius: 999px; background: var(--hype-soft); opacity: 0; transition: opacity .4s 1s;
-}
-.score.is-real .was { opacity: 1; }
-.verdict { text-align: center; max-width: 30ch; margin: 2px 0 12px; font-size: 15.5px; text-wrap: balance; }
-.verdict strong { color: var(--tone); }
-.btn-dark {
-  width: 100%; border: 0; border-radius: 16px; padding: 15px 18px; background: var(--ink); color: var(--card);
-  font-weight: 600; font-size: 16px; display: flex; align-items: center; justify-content: center; gap: 10px;
-}
-.btn-dark svg { width: 18px; height: 18px; }
-.score.is-real .reveal { background: var(--card); color: var(--muted); border: 1px solid var(--line); font-weight: 500; font-size: 14px; padding: 11px 16px; }
-
-/* ---------- Stats ---------- */
-.stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
-.stat { background: var(--card); border-radius: 16px; padding: 12px 10px; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
-.stat b { font-family: var(--display); font-weight: 500; font-size: 20px; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; white-space: nowrap; }
-.stat b small { font-family: var(--body); font-size: 13px; font-weight: 600; letter-spacing: 0; margin-left: 3px; }
-.stat span { font-size: 12.5px; color: var(--muted); line-height: 1.3; }
-.bad { color: var(--hype); }
-.good { color: var(--real); }
-.mid { color: var(--flag); }
-
-/* ---------- Panels ---------- */
-.panel { background: var(--card); border-radius: 20px; padding: 16px; display: flex; flex-direction: column; gap: 12px; }
-.panel-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
-.panel h2 { margin: 0; font-size: 16px; font-weight: 700; }
-.panel .sub { margin: -8px 0 0; color: var(--muted); font-size: 13px; }
-.count { color: var(--muted); font-size: 13px; white-space: nowrap; }
-.chart svg { width: 100%; height: auto; display: block; }
-.chart text { font-family: var(--body); font-size: 11px; fill: var(--muted); }
-.legend { display: flex; flex-wrap: wrap; gap: 14px; font-size: 12.5px; color: var(--muted); }
-.legend i { display: inline-block; width: 16px; height: 3px; border-radius: 2px; vertical-align: middle; margin-right: 6px; }
-.legend i.sq { width: 12px; height: 12px; border-radius: 3px; }
-.def { margin: 0; font-size: 13px; color: var(--muted); background: var(--paper); border-radius: 12px; padding: 10px 12px; }
-.def b { color: var(--ink); }
-
-.flag { display: flex; gap: 12px; align-items: flex-start; background: var(--flag-soft); color: var(--flag); border-radius: 16px; padding: 13px 14px; font-size: 14px; }
-.flag svg { width: 20px; height: 20px; flex: none; margin-top: 1px; }
-.flag p { margin: 0; color: var(--ink); }
-.flag b { color: var(--flag); }
-
-.link-btn {
-  border: 1px solid var(--line); background: var(--card); border-radius: 14px; padding: 11px 14px;
-  font-weight: 600; font-size: 14px; display: flex; align-items: center; justify-content: center; gap: 8px;
-}
-.link-btn svg { width: 16px; height: 16px; }
-
-/* ---------- Dupes ---------- */
-.dupe { display: flex; align-items: center; gap: 12px; padding-top: 12px; border-top: 1px solid var(--line); }
-.dupe:first-of-type { border-top: 0; padding-top: 0; }
-.dupe .mini { width: 44px; height: 44px; border-radius: 12px; flex: none; display: grid; place-items: center; }
-.dupe .mini svg { width: 20px; height: 30px; }
-.dupe div { min-width: 0; flex: 1; }
-.dupe strong { display: block; font-size: 14.5px; }
-.dupe span { font-size: 12.5px; color: var(--muted); }
-.dupe .price { flex: none; text-align: right; font-weight: 700; font-variant-numeric: tabular-nums; }
-.dupe .price small { display: block; font-weight: 500; font-size: 12px; color: var(--real); }
-
-/* ---------- Decide ---------- */
-.decide { background: var(--ink); color: var(--card); border-radius: 22px; padding: 18px; display: flex; flex-direction: column; gap: 12px; }
-.decide h2 { margin: 0; font-family: var(--display); font-weight: 500; font-size: 18px; letter-spacing: -0.01em; }
-.decide p { margin: -4px 0 0; color: #B9BDCC; font-size: 14px; }
-.decide .row { display: grid; grid-template-columns: 1fr auto; gap: 8px; }
-.btn-wait {
-  border: 0; border-radius: 14px; padding: 14px 16px; background: var(--card); color: var(--ink);
-  font-weight: 700; font-size: 15.5px; display: flex; align-items: center; justify-content: center; gap: 8px;
-}
-.btn-wait svg { width: 18px; height: 18px; }
-.btn-buy { border: 1px solid #3A3E52; background: transparent; color: #B9BDCC; border-radius: 14px; padding: 14px 14px; font-weight: 500; font-size: 14px; }
-.decide.is-waiting .btn-wait { background: var(--real); color: #fff; }
-.decide .note { font-size: 13px; color: #B9BDCC; margin: 0; min-height: 0; }
-
-.footnote { color: var(--muted); font-size: 12px; text-align: center; margin: 4px 0 0; }
-
-/* ---------- Threads ---------- */
-.view-title { display: flex; flex-direction: column; gap: 2px; }
-.view-title h1 { margin: 0; font-family: var(--display); font-weight: 500; font-size: 22px; letter-spacing: -0.02em; }
-.view-title p { margin: 0; color: var(--muted); font-size: 13.5px; }
-.rules { display: flex; gap: 10px; align-items: flex-start; background: var(--real-soft); border-radius: 16px; padding: 12px 14px; font-size: 13.5px; }
-.rules svg { width: 20px; height: 20px; flex: none; color: var(--real); margin-top: 1px; }
-.rules p { margin: 0; }
-.rules b { color: var(--real); }
-.filters { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; margin: 0 -16px; padding: 0 16px; }
-.filters::-webkit-scrollbar { display: none; }
-.filters button {
-  flex: none; border: 1px solid var(--line); background: var(--card); border-radius: 999px;
-  padding: 7px 13px; font-size: 13.5px; font-weight: 500; color: var(--muted);
-}
-.filters button[aria-pressed="true"] { background: var(--ink); border-color: var(--ink); color: var(--card); font-weight: 600; }
-
-.thread { background: var(--card); border-radius: 20px; padding: 16px; display: flex; flex-direction: column; gap: 12px; }
-.t-head { display: flex; align-items: center; gap: 10px; }
-.pic { width: 38px; height: 38px; border-radius: 50%; flex: none; display: grid; place-items: center; font-weight: 700; font-size: 14px; color: var(--ink); }
-.t-head .meta { min-width: 0; flex: 1; display: flex; flex-direction: column; gap: 3px; }
-.t-head .name { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; font-weight: 700; font-size: 14.5px; }
-.t-head .name small { font-weight: 500; font-size: 12.5px; color: var(--muted); }
-.chip { font-size: 11.5px; font-weight: 600; padding: 3px 8px; border-radius: 999px; display: inline-flex; gap: 4px; align-items: center; white-space: nowrap; }
-.chip svg { width: 11px; height: 11px; }
-.chip.ok { background: var(--real-soft); color: var(--real); }
-.chip.owned { background: var(--paper); color: var(--ink); }
-.chip.ask { background: var(--flag-soft); color: var(--flag); }
-.chip.badge { background: var(--hype-soft); color: var(--hype); }
-
-.chain { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
-.chain li { position: relative; padding: 0 0 14px 26px; }
-.chain li:last-child { padding-bottom: 0; }
-.chain li::before { content: ""; position: absolute; left: 7px; top: 16px; bottom: -2px; width: 2px; background: var(--line); }
-.chain li:last-child::before { display: none; }
-.chain .dot { position: absolute; left: 0; top: 3px; width: 16px; height: 16px; border-radius: 50%; border: 3px solid var(--card); box-shadow: 0 0 0 2px currentColor; background: currentColor; }
-.chain .when { display: flex; align-items: center; gap: 8px; font-size: 12.5px; font-weight: 700; margin-bottom: 2px; }
-.chain .when .r { margin-left: auto; font-size: 14px; font-variant-numeric: tabular-nums; }
-.chain p { margin: 0; color: var(--ink); font-size: 14.5px; }
-.chain .stopped { display: inline-block; margin-top: 4px; font-size: 12px; font-weight: 600; color: var(--hype); }
-.chain .pending { color: var(--muted); }
-.chain .pending p { color: var(--muted); font-style: italic; }
-
-.t-foot { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding-top: 10px; border-top: 1px solid var(--line); font-size: 13px; color: var(--muted); }
-.t-foot .helped { display: inline-flex; align-items: center; gap: 6px; }
-.t-foot .helped svg { width: 15px; height: 15px; color: var(--real); }
-.t-foot button { border: 0; background: var(--paper); border-radius: 10px; padding: 7px 11px; font-weight: 600; font-size: 13px; }
-
-.question { font-size: 15px; font-weight: 600; margin: 0; }
-.answers { display: flex; flex-direction: column; gap: 10px; }
-.answer { background: var(--paper); border-radius: 14px; padding: 10px 12px; display: flex; flex-direction: column; gap: 4px; }
-.answer .who { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; font-size: 13px; font-weight: 700; }
-.answer p { margin: 0; font-size: 14px; }
-
-.ask-bar {
-  position: fixed; left: 0; right: 0; bottom: calc(64px + env(safe-area-inset-bottom, 0px)); z-index: 4;
-  display: flex; justify-content: center; pointer-events: none;
-}
-.ask-bar button {
-  pointer-events: auto; border: 0; border-radius: 999px; background: var(--ink); color: var(--card);
-  padding: 12px 18px; font-weight: 600; font-size: 14.5px; display: inline-flex; align-items: center; gap: 8px;
-  box-shadow: 0 10px 24px -10px rgba(21,24,38,.6);
-}
-.ask-bar svg { width: 17px; height: 17px; }
-
-/* ---------- Wait list ---------- */
-.saved { background: var(--ink); color: var(--card); border-radius: 22px; padding: 18px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
-.saved span { color: #B9BDCC; font-size: 13.5px; display: block; }
-.saved b { font-family: var(--display); font-weight: 700; font-size: 34px; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; color: #7FE3D8; }
-.saved .skips { text-align: right; font-size: 13px; color: #B9BDCC; }
-.saved .skips strong { display: block; color: var(--card); font-size: 22px; font-family: var(--display); font-weight: 500; }
-
-.wait-item { background: var(--card); border-radius: 20px; padding: 14px; display: flex; flex-direction: column; gap: 12px; }
-.wi-top { display: flex; align-items: center; gap: 12px; }
-.wi-top .mini { width: 48px; height: 48px; border-radius: 14px; flex: none; display: grid; place-items: center; }
-.wi-top .mini svg { width: 26px; height: 32px; }
-.wi-top div.txt { min-width: 0; flex: 1; }
-.wi-top strong { display: block; font-size: 15px; }
-.wi-top span { font-size: 13px; color: var(--muted); }
-.timer { font-family: var(--display); font-weight: 500; font-size: 15px; font-variant-numeric: tabular-nums; text-align: right; flex: none; }
-.timer small { display: block; font-family: var(--body); font-size: 11.5px; color: var(--muted); font-weight: 500; }
-.progress { height: 6px; border-radius: 99px; background: var(--paper); overflow: hidden; }
-.progress i { display: block; height: 100%; background: var(--real); border-radius: 99px; }
-.due { background: var(--flag-soft); border-radius: 14px; padding: 12px; display: flex; flex-direction: column; gap: 10px; }
-.due p { margin: 0; font-size: 14px; }
-.due p b { color: var(--flag); }
-.due .row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-.due button { border: 0; border-radius: 12px; padding: 11px; font-weight: 600; font-size: 14px; }
-.due .skip { background: var(--ink); color: var(--card); }
-.due .keep { background: var(--card); border: 1px solid var(--line); }
-.resolved { font-size: 13.5px; font-weight: 600; color: var(--real); display: flex; align-items: center; gap: 6px; }
-.resolved svg { width: 16px; height: 16px; }
-.section-label { margin: 6px 2px -4px; font-size: 12.5px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; }
-.empty { text-align: center; color: var(--muted); font-size: 14px; background: var(--card); border-radius: 20px; padding: 20px 16px; border: 1px dashed var(--line); }
-
-/* ---------- Tab bar ---------- */
-.tabs {
-  position: fixed; left: 0; right: 0; bottom: 0; z-index: 5;
-  background: rgba(255,255,255,.94); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
-  border-top: 1px solid var(--line);
-  padding: 8px max(16px, env(safe-area-inset-right, 0px)) calc(8px + env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px));
-}
-.tabs nav { max-width: 430px; margin: 0 auto; display: grid; grid-template-columns: repeat(3, 1fr); }
-.tabs button { position: relative; border: 0; background: none; display: flex; flex-direction: column; align-items: center; gap: 3px; font-size: 11.5px; color: var(--muted); padding: 4px 0; }
-.tabs button svg { width: 22px; height: 22px; }
-.tabs button[aria-current="page"] { color: var(--ink); font-weight: 600; }
-.tabs .badge-n {
-  position: absolute; top: 0; left: calc(50% + 6px); min-width: 17px; height: 17px; border-radius: 99px; padding: 0 5px;
-  background: var(--hype); color: #fff; font-size: 11px; font-weight: 700; display: grid; place-items: center;
-}
+.sheet.open { transform: none; visibility: visible; transition: transform .35s cubic-bezier(.2,.8,.2,1), visibility 0s; }
+.grab { width: 40px; height: 5px; border-radius: 9px; background: #D5D8E2; margin: 0 auto 10px; }
+.sheet-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+.sheet-head h2 { margin: 0; font-size: 17px; }
+.sheet-head button { font-size: 15px; color: var(--muted); }
+.step { border: 1px solid var(--line); border-radius: 16px; padding: 14px; display: flex; flex-direction: column; gap: 10px; margin-bottom: 12px; }
+.step h3 { margin: 0; font-size: 14.5px; display: flex; align-items: center; gap: 8px; }
+.step h3 i { width: 22px; height: 22px; border-radius: 50%; background: var(--ink); color: #fff; font-style: normal; font-size: 12px; display: grid; place-items: center; }
+.proof { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.proof button { border: 1px solid var(--line); border-radius: 12px; padding: 12px 10px; display: flex; flex-direction: column; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; }
+.proof button svg { width: 24px; height: 24px; }
+.scanning { display: flex; align-items: center; gap: 10px; font-size: 14px; color: var(--muted); }
+.spin { width: 18px; height: 18px; border-radius: 50%; border: 2.5px solid var(--line); border-top-color: var(--ink); animation: spin .8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.ok-receipt { display: flex; gap: 10px; align-items: center; background: var(--real-soft); border-radius: 12px; padding: 10px 12px; font-size: 13.5px; }
+.ok-receipt svg { width: 20px; height: 20px; color: var(--real); }
+.ok-receipt b { display: block; }
+.step textarea { font: inherit; font-size: 16px; border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; min-height: 84px; resize: none; color: var(--ink); }
+.rate { display: flex; gap: 4px; flex-wrap: wrap; }
+.rate button { width: 32px; height: 32px; border-radius: 9px; background: var(--soft); font-weight: 700; font-size: 13px; }
+.rate button[aria-pressed="true"] { background: var(--ink); color: #fff; }
+.promo { display: flex; gap: 10px; align-items: flex-start; background: #EDE7FF; border-radius: 12px; padding: 10px 12px; font-size: 13.5px; margin-bottom: 12px; }
+.promo svg { width: 18px; height: 18px; color: #5B3FD6; margin-top: 1px; }
+.post-btn { width: 100%; border-radius: 14px; padding: 14px; background: var(--ink); color: #fff; font-weight: 700; font-size: 16px; }
+.post-btn:disabled { opacity: .3; }
+.locked-note { font-size: 12.5px; color: var(--muted); text-align: center; margin: 8px 0 0; }
+.step.locked { opacity: .45; pointer-events: none; }
 
 /* ---------- Toast ---------- */
 .toast {
-  position: fixed; left: 50%; bottom: calc(126px + env(safe-area-inset-bottom, 0px)); z-index: 30;
-  transform: translate(-50%, 12px); opacity: 0; pointer-events: none;
-  background: var(--ink); color: var(--card); border-radius: 14px; padding: 11px 15px; font-size: 14px; font-weight: 500;
-  width: max-content; max-width: min(360px, calc(100vw - 32px)); text-align: center;
-  transition: opacity .25s, transform .25s;
+  position: fixed; left: 50%; top: calc(64px + env(safe-area-inset-top, 0px)); z-index: 30; transform: translate(-50%, -10px); opacity: 0;
+  background: var(--ink); color: #fff; border-radius: 14px; padding: 10px 14px; font-size: 14px; font-weight: 500;
+  display: flex; align-items: center; gap: 8px; width: max-content; max-width: min(380px, calc(100vw - 32px));
+  transition: opacity .25s, transform .25s; pointer-events: none;
 }
+.toast svg { width: 18px; height: 18px; color: var(--streak); }
 .toast.show { opacity: 1; transform: translate(-50%, 0); }
 
-/* ---------- Intro: share from a video ---------- */
-.intro { position: fixed; inset: 0; z-index: 20; background: #07080D; display: flex; justify-content: center; transition: opacity .45s, visibility .45s; }
-.intro.gone { opacity: 0; visibility: hidden; }
-.phone { position: relative; width: 100%; max-width: 430px; height: 100%; overflow: hidden; color: #fff; }
-.video {
-  position: absolute; inset: 0;
-  background:
-    radial-gradient(120% 70% at 30% 25%, #FF8DB8 0%, rgba(255,141,184,0) 60%),
-    radial-gradient(90% 60% at 80% 75%, #7A3CFF 0%, rgba(122,60,255,0) 65%),
-    linear-gradient(170deg, #3B1036, #120A1F 70%);
-}
-.video .bottle { position: absolute; left: 50%; top: 40%; width: 46%; max-width: 190px; transform: translate(-50%, -50%) rotate(-8deg); filter: drop-shadow(0 30px 40px rgba(0,0,0,.45)); animation: bob 3.2s ease-in-out infinite; }
-@keyframes bob { 50% { transform: translate(-50%, -54%) rotate(-5deg); } }
-.sparkle { position: absolute; width: 14px; height: 14px; background: #fff; clip-path: polygon(50% 0, 62% 38%, 100% 50%, 62% 62%, 50% 100%, 38% 62%, 0 50%, 38% 38%); animation: tw 2s ease-in-out infinite; }
-@keyframes tw { 50% { opacity: .2; transform: scale(.6); } }
-.v-top { position: absolute; top: calc(14px + env(safe-area-inset-top, 0px)); left: 16px; right: 16px; display: flex; justify-content: space-between; font-size: 13px; font-weight: 600; opacity: .85; }
-.rail { position: absolute; right: 12px; bottom: calc(150px + env(safe-area-inset-bottom, 0px)); display: flex; flex-direction: column; gap: 18px; align-items: center; }
-.rail div, .rail button { display: flex; flex-direction: column; align-items: center; gap: 3px; font-size: 12px; font-weight: 600; background: none; border: 0; color: #fff; padding: 0; }
-.rail svg { width: 32px; height: 32px; filter: drop-shadow(0 2px 4px rgba(0,0,0,.4)); }
-.rail .share-btn { position: relative; }
-.rail .share-btn::after { content: ""; position: absolute; top: -6px; left: 50%; width: 44px; height: 44px; margin-left: -22px; border-radius: 50%; border: 2px solid #fff; animation: ping 1.6s ease-out infinite; }
-@keyframes ping { from { transform: scale(.7); opacity: .9; } to { transform: scale(1.25); opacity: 0; } }
-.caption { position: absolute; left: 16px; right: 76px; bottom: calc(100px + env(safe-area-inset-bottom, 0px)); display: flex; flex-direction: column; gap: 6px; text-shadow: 0 1px 6px rgba(0,0,0,.4); }
-.caption strong { font-size: 15.5px; }
-.caption p { margin: 0; font-size: 14.5px; }
-.caption .views { font-size: 13px; opacity: .8; }
-.tap-hint { position: absolute; left: 0; right: 0; bottom: calc(36px + env(safe-area-inset-bottom, 0px)); text-align: center; font-size: 13.5px; font-weight: 600; opacity: .8; }
-
-.sheet-scrim { position: absolute; inset: 0; background: rgba(0,0,0,.35); opacity: 0; pointer-events: none; transition: opacity .3s; }
-.sheet {
-  position: absolute; left: 0; right: 0; bottom: 0; background: #F4F5F8; color: var(--ink);
-  border-radius: 22px 22px 0 0; padding: 10px 16px calc(22px + env(safe-area-inset-bottom, 0px));
-  transform: translateY(105%); transition: transform .38s cubic-bezier(.2,.8,.2,1);
-}
-.intro.sheet-open .sheet { transform: none; }
-.intro.sheet-open .sheet-scrim { opacity: 1; pointer-events: auto; }
-.grab { width: 40px; height: 5px; border-radius: 9px; background: #C9CDD8; margin: 0 auto 14px; }
-.sheet h3 { margin: 0 0 14px; font-size: 15px; font-weight: 700; text-align: center; }
-.apps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
-.apps button { border: 0; background: none; display: flex; flex-direction: column; align-items: center; gap: 7px; font-size: 12px; font-weight: 500; color: var(--ink); padding: 0; }
-.apps .ic { width: 58px; height: 58px; border-radius: 16px; display: grid; place-items: center; color: #fff; }
-.apps .ic svg { width: 28px; height: 28px; }
-.apps .hc .ic { background: var(--ink); position: relative; }
-.apps .hc .ic svg { width: 40px; height: 40px; }
-.apps .hc .ic::after { content: ""; position: absolute; inset: -5px; border-radius: 20px; border: 2.5px solid var(--hype); animation: ping2 1.6s ease-out infinite; }
-@keyframes ping2 { from { transform: scale(.95); opacity: 1; } to { transform: scale(1.18); opacity: 0; } }
-.apps .hc { font-weight: 700; }
-.sheet .copy-row { margin-top: 18px; background: #fff; border-radius: 14px; padding: 12px 14px; font-size: 13px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-
-.scan { position: absolute; inset: 0; background: var(--paper); color: var(--ink); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 22px; padding: 24px; opacity: 0; pointer-events: none; transition: opacity .3s; }
-.intro.scanning .scan { opacity: 1; pointer-events: auto; }
-.scan .logo { width: 64px; height: 64px; animation: pulse 1s ease-in-out infinite; }
-@keyframes pulse { 50% { transform: scale(.9); } }
-.scan h2 { margin: 0; font-family: var(--display); font-weight: 500; font-size: 18px; text-align: center; }
-.steps { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; width: 100%; max-width: 290px; }
-.steps li { display: flex; align-items: center; gap: 10px; font-size: 14.5px; color: var(--muted); opacity: .35; transition: opacity .3s, color .3s; }
-.steps li.done { opacity: 1; color: var(--ink); }
-.steps li i { width: 22px; height: 22px; border-radius: 50%; flex: none; background: var(--line); display: grid; place-items: center; transition: background-color .3s; }
-.steps li.done i { background: var(--real); }
-.steps li i svg { width: 13px; height: 13px; color: #fff; }
-
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after { animation: none !important; transition-duration: .01ms !important; transition-delay: 0s !important; }
+  *, *::before, *::after { animation: none !important; transition-duration: .01ms !important; }
 }
 </style>
 </head>
-<body class="locked">
-
-<!-- ================= Intro: the hype starts in a video ================= -->
-<div class="intro" id="intro">
-  <div class="phone">
-    <div class="video" aria-hidden="true">
-      <svg class="bottle" viewBox="0 0 30 44"><rect x="10" y="1" width="10" height="9" rx="2" fill="#151826"/><rect x="4" y="10" width="22" height="33" rx="7" fill="#FFFFFF" opacity=".95"/><rect x="8" y="22" width="14" height="3" rx="1.5" fill="#F0266F"/><rect x="8" y="27" width="9" height="2" rx="1" fill="#F7A8C6"/></svg>
-      <span class="sparkle" style="left:22%;top:24%"></span>
-      <span class="sparkle" style="left:72%;top:30%;animation-delay:.6s"></span>
-      <span class="sparkle" style="left:64%;top:52%;animation-delay:1.1s;width:10px;height:10px"></span>
+<body>
+<div class="shell">
+  <header class="appbar">
+    <div class="bar-row">
+      <button class="back" id="backBtn" type="button" aria-label="Back" hidden>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m15 5-7 7 7 7"/></svg>
+      </button>
+      <span id="barSpacer"></span>
+      <button class="logo" id="logo" type="button" aria-label="HypeCheck home. Double-tap to reset the demo.">
+        <svg viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="9" fill="#151826"/><path d="M16 5c1.2 3.6 5.5 5.8 5.5 11a5.5 5.5 0 0 1-11 0c0-2.6 1.4-4 2.4-5.2.2 1.7 1 2.7 2.2 3.1C14.6 11 15 7.8 16 5Z" fill="#F0266F"/><path d="m11.5 21.5 3.2 3.2 6.8-7" fill="none" stroke="#FFFFFF" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      <span class="bar-title" id="barTitle" hidden>Thread</span>
+      <span></span>
     </div>
-    <div class="v-top" aria-hidden="true"><span>Following</span><span>For You</span><span>&#9906;</span></div>
-
-    <div class="rail">
-      <div aria-hidden="true"><svg viewBox="0 0 24 24" fill="#fff"><path d="M12 21s-7.5-4.6-9.5-9.2C1.2 8.6 3.2 5 6.7 5c2.1 0 3.6 1.2 4.3 2.4h2C13.7 6.2 15.2 5 17.3 5c3.5 0 5.5 3.6 4.2 6.8C19.5 16.4 12 21 12 21Z"/></svg>1.2M</div>
-      <div aria-hidden="true"><svg viewBox="0 0 24 24" fill="#fff"><path d="M12 3C6.5 3 2 6.9 2 11.6c0 2.6 1.4 4.9 3.6 6.5L5 21.5l4-2c1 .3 2 .4 3 .4 5.5 0 10-3.9 10-8.6S17.5 3 12 3Z"/></svg>18.4K</div>
-      <button class="share-btn" id="shareBtn" type="button" aria-label="Share this video"><svg viewBox="0 0 24 24" fill="#fff"><path d="M13 4v4.2C6.7 9 3.5 13.4 3 19.5c2-3.3 5.2-5 10-5V19l8-7.5L13 4Z"/></svg>Share</button>
+    <div class="feed-tabs" id="feedTabs" role="tablist">
+      <button type="button" role="tab" aria-selected="true" data-feed="foryou">For you</button>
+      <button type="button" role="tab" aria-selected="false" data-feed="following">Following</button>
+      <button type="button" role="tab" aria-selected="false" data-feed="day30">Day 30+</button>
     </div>
+  </header>
 
-    <div class="caption" aria-hidden="true">
-      <strong>@glowwithkai</strong>
-      <p>this serum literally changed my skin &#10024; #glowdrop #skincare #musthave</p>
-      <span class="views">4.1M views &middot; Video shown is a mock-up</span>
-    </div>
-    <div class="tap-hint" id="tapHint">Saw it on your feed? Tap <b>Share</b></div>
+  <main id="main">
+    <section id="v-home"></section>
+    <section id="v-detail" hidden></section>
+    <section id="v-search" hidden></section>
+    <section id="v-activity" hidden></section>
+    <section id="v-profile" hidden></section>
+  </main>
+</div>
 
-    <div class="sheet-scrim" id="scrim"></div>
-    <div class="sheet" role="dialog" aria-label="Share to">
-      <div class="grab"></div>
-      <h3>Share to</h3>
-      <div class="apps">
-        <button type="button" tabindex="-1"><span class="ic" style="background:#34C759"><svg viewBox="0 0 24 24" fill="#fff"><path d="M12 3C6.5 3 2 6.6 2 11c0 2.4 1.3 4.6 3.4 6L4.6 21l4.1-2.2c1 .3 2.1.4 3.3.4 5.5 0 10-3.6 10-8.1S17.5 3 12 3Z"/></svg></span>Messages</button>
-        <button type="button" tabindex="-1"><span class="ic" style="background:#8E93A6"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/></svg></span>Copy link</button>
-        <button type="button" tabindex="-1"><span class="ic" style="background:#8E93A6"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12v18l-6-4-6 4z"/></svg></span>Save</button>
-        <button type="button" class="hc" id="openHC"><span class="ic"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M16 5c1.2 3.6 5.5 5.8 5.5 11a5.5 5.5 0 0 1-11 0c0-2.6 1.4-4 2.4-5.2.2 1.7 1 2.7 2.2 3.1C14.6 11 15 7.8 16 5Z" fill="#F0266F"/><path d="m11.5 21.5 3.2 3.2 6.8-7" fill="none" stroke="#FFFFFF" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>HypeCheck</button>
-      </div>
-      <div class="copy-row">tiktok.com/@glowwithkai/video/7429&hellip;</div>
-    </div>
-
-    <div class="scan" aria-live="polite">
-      <svg class="logo" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="9" fill="#151826"/><path d="M16 5c1.2 3.6 5.5 5.8 5.5 11a5.5 5.5 0 0 1-11 0c0-2.6 1.4-4 2.4-5.2.2 1.7 1 2.7 2.2 3.1C14.6 11 15 7.8 16 5Z" fill="#F0266F"/><path d="m11.5 21.5 3.2 3.2 6.8-7" fill="none" stroke="#FFFFFF" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      <h2>Checking the hype&hellip;</h2>
-      <ul class="steps" id="steps">
-        <li><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5 9-10"/></svg></i>Product found in the video</li>
-        <li><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5 9-10"/></svg></i>1,284 receipt-verified buyers matched</li>
-        <li><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5 9-10"/></svg></i>Top 10 creator posts scanned for ads</li>
-      </ul>
+<div class="composer" id="composer" hidden>
+  <div class="inner">
+    <div class="suggest" id="suggest"></div>
+    <div class="input-row">
+      <span class="av sm" style="background:#E9E2FF">NL</span>
+      <input id="askInput" type="text" placeholder="Ask about this product..." autocomplete="off" aria-label="Ask a question">
+      <button class="send" id="sendBtn" type="button" aria-label="Send question" disabled>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+      </button>
     </div>
   </div>
 </div>
 
-<main class="app">
-  <header class="top">
-    <button class="brand" id="brand" type="button" aria-label="HypeCheck home. Double-tap to restart the demo.">
-      <svg viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="9" fill="#151826"/><path d="M16 5c1.2 3.6 5.5 5.8 5.5 11a5.5 5.5 0 0 1-11 0c0-2.6 1.4-4 2.4-5.2.2 1.7 1 2.7 2.2 3.1C14.6 11 15 7.8 16 5Z" fill="#F0266F"/><path d="m11.5 21.5 3.2 3.2 6.8-7" fill="none" stroke="#FFFFFF" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      HypeCheck
-    </button>
-    <div class="avatar" aria-hidden="true">NL</div>
-  </header>
+<nav class="nav" id="nav" aria-label="App sections">
+  <div class="inner">
+    <button type="button" data-tab="home" aria-current="page" aria-label="Home"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linejoin="round"><path d="M4 10.5 12 4l8 6.5V20a1 1 0 0 1-1 1h-4.5v-6h-5v6H5a1 1 0 0 1-1-1z"/></svg></button>
+    <button type="button" data-tab="search" aria-label="Search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></button>
+    <button type="button" class="plus" id="plusBtn" aria-label="New verified post"><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></span></button>
+    <button type="button" data-tab="activity" aria-label="Activity"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linejoin="round"><path d="M12 20s-7-4.3-8.8-8.6C2 8.4 3.9 5 7.2 5c2 0 3.4 1.1 4.1 2.3h1.4C13.4 6.1 14.8 5 16.8 5c3.3 0 5.2 3.4 4 6.4C19 15.7 12 20 12 20Z"/></svg><span class="dot-n" id="actDot"></span></button>
+    <button type="button" data-tab="profile" aria-label="Profile"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg></button>
+  </div>
+</nav>
 
-  <!-- ================= CHECK ================= -->
-  <section class="view" id="view-check" aria-label="Check">
-    <div class="source">
-      <span class="play" aria-hidden="true"><svg viewBox="0 0 12 12" fill="currentColor"><path d="M3 1.5v9l7.5-4.5z"/></svg></span>
-      <span>Shared from <b>@glowwithkai</b>&rsquo;s video</span>
-      <span class="found">Product found</span>
+<div class="scrim" id="scrim"></div>
+<div class="sheet" id="sheet" role="dialog" aria-label="New verified post">
+  <div class="grab"></div>
+  <div class="sheet-head"><button type="button" id="cancelPost">Cancel</button><h2>New verified post</h2><span style="width:48px"></span></div>
+  <div class="promo"><svg viewBox="0 0 24 24" fill="currentColor"><path d="m12 2 2.6 6.6L21 9.3l-5 4.4 1.6 6.8L12 17l-5.6 3.5L8 13.7 3 9.3l6.4-.7z"/></svg><span><b>Founding 100:</b> your first verified post unlocks 30 days of Premium, free.</span></div>
+  <div class="step" id="stepProof">
+    <h3><i>1</i>Show you bought it</h3>
+    <div class="proof" id="proofBtns">
+      <button type="button" id="scanBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"/><path d="M9 8h6M9 12h6"/></svg>Scan receipt</button>
+      <button type="button" id="emailBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>Forward order email</button>
     </div>
-
-    <div class="product">
-      <div class="thumb" aria-hidden="true"><svg viewBox="0 0 30 44"><rect x="10" y="1" width="10" height="9" rx="2" fill="#151826"/><rect x="4" y="10" width="22" height="33" rx="7" fill="#FFFFFF" opacity=".92"/><rect x="8" y="22" width="14" height="3" rx="1.5" fill="#F0266F"/></svg></div>
-      <div>
-        <h1>GlowDrop Dew Serum</h1>
-        <p><span class="trend">Trending on TikTok</span>, 4.1M views this week</p>
-      </div>
+    <div class="scanning" id="scanning" hidden><span class="spin"></span>Reading your receipt...</div>
+    <div class="ok-receipt" id="okReceipt" hidden>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="m7.5 12 3 3 6-6"/></svg>
+      <span><b>Verified: FrostFlask 40 oz Tumbler</b>Walmart &middot; $29 &middot; bought Nov 8</span>
     </div>
-
-    <section class="score" id="score" aria-live="polite">
-      <div class="score-label">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2c1.5 4.5 7 7 7 13a7 7 0 0 1-14 0c0-3.3 1.8-5.1 3-6.6.3 2.2 1.3 3.4 2.8 4C10.3 9 11 5.2 12 2Z"/></svg>
-        <span id="labelText">Hype Score</span>
-      </div>
-      <div class="gauge">
-        <svg viewBox="0 0 220 190" aria-hidden="true">
-          <g transform="rotate(135 110 110)" fill="none" stroke-width="16" stroke-linecap="round">
-            <circle class="track" cx="110" cy="110" r="88" id="track"/>
-            <circle class="ghost" cx="110" cy="110" r="88" id="ghost"/>
-            <circle class="bar" cx="110" cy="110" r="88" id="bar"/>
-          </g>
-        </svg>
-        <div class="gauge-num">
-          <div class="num" id="num">9.2</div>
-          <div class="out">out of 10</div>
-          <div class="was">Hype was 9.2</div>
-        </div>
-      </div>
-      <p class="verdict" id="verdict">Everyone is posting about it. How does it hold up after the hype?</p>
-      <button class="btn-dark reveal" id="reveal" type="button">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h12l4 5-4 5H4z"/></svg>
-        <span id="revealText">Check the reality</span>
-      </button>
-    </section>
-
-    <section class="stats" aria-label="Key numbers">
-      <div class="stat"><b class="bad">41%</b><span>regret it after 30 days</span></div>
-      <div class="stat"><b class="mid">18<small>days</small></b><span>Hype Half-Life</span></div>
-      <div class="stat"><b>1,284</b><span>receipt-verified buyers</span></div>
-    </section>
-
-    <section class="panel chart" aria-label="Rating over time">
-      <h2>The hype gap</h2>
-      <p class="sub">Verified buyers rate it again at day 7, 30 and 90.</p>
-      <svg viewBox="0 0 320 156" role="img" aria-label="Hype stays at 9.2. Verified rating falls from 8.7 on day 1 to 5.8 on day 30 and 5.1 on day 90. Half of the drop happens by day 18.">
-        <g stroke="#DCE0EA" stroke-width="1">
-          <line x1="34" y1="22" x2="306" y2="22"/><line x1="34" y1="60" x2="306" y2="60"/>
-          <line x1="34" y1="98" x2="306" y2="98"/><line x1="34" y1="136" x2="306" y2="136"/>
-        </g>
-        <text x="26" y="26" text-anchor="end">10</text><text x="26" y="64" text-anchor="end">7.5</text>
-        <text x="26" y="102" text-anchor="end">5</text><text x="26" y="140" text-anchor="end">2.5</text>
-        <!-- y = 22 + (10 - v) * 15.2 ; x: day1=50, day7=110, day18=153, day30=200, day90=290 -->
-        <path d="M50,34.2 L290,34.2 L290,96.5 L200,85.8 L110,53.9 L50,41.8 Z" fill="#F0266F" opacity="0.1"/>
-        <polyline points="50,34.2 290,34.2" fill="none" stroke="#F0266F" stroke-width="2.5" stroke-dasharray="6 6"/>
-        <polyline points="50,41.8 110,53.9 200,85.8 290,96.5" fill="none" stroke="#0B8A80" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
-        <line x1="153" y1="12" x2="153" y2="136" stroke="#B4480E" stroke-width="1.5" stroke-dasharray="3 4"/>
-        <text x="153" y="9" text-anchor="middle" style="fill:#B4480E;font-weight:700">Half-life &middot; day 18</text>
-        <circle cx="50" cy="41.8" r="4" fill="#0B8A80"/><circle cx="110" cy="53.9" r="4" fill="#0B8A80"/>
-        <circle cx="153" cy="69.1" r="5" fill="#FFFFFF" stroke="#B4480E" stroke-width="2.5"/>
-        <circle cx="200" cy="85.8" r="4" fill="#0B8A80"/><circle cx="290" cy="96.5" r="4" fill="#0B8A80"/>
-        <text x="245" y="66" text-anchor="middle" style="fill:#F0266F;font-weight:700;font-size:11.5px">the hype gap</text>
-        <text x="200" y="104" text-anchor="middle" style="fill:#0B8A80;font-weight:700;font-size:12px">5.8</text>
-        <text x="290" y="115" text-anchor="middle" style="fill:#0B8A80;font-weight:700;font-size:12px">5.1</text>
-        <text x="50" y="152" text-anchor="middle">Day 1</text><text x="110" y="152" text-anchor="middle">Day 7</text>
-        <text x="200" y="152" text-anchor="middle">Day 30</text><text x="290" y="152" text-anchor="middle">Day 90</text>
-      </svg>
-      <div class="legend">
-        <span><i style="background:#F0266F"></i>Hype on social media</span>
-        <span><i style="background:#0B8A80"></i>Verified buyer rating</span>
-      </div>
-      <p class="def"><b>Hype Half-Life</b> is how many days it takes for buyers&rsquo; rating to lose half of its total drop. Most products we track settle after 60+ days; this one fades in 18.</p>
-    </section>
-
-    <div class="flag" role="note">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 21V4h11l-1 4h6v9H9l1-4H4"/></svg>
-      <p><b>7 of the top 10 creator posts</b> show signs of paid promotion without a disclosure.</p>
-    </div>
-
-    <section class="panel" aria-label="Top Owner Thread">
-      <div class="panel-head"><h2>Owner Threads</h2><span class="count">312 threads</span></div>
-      <p class="sub">Real owners post on day 1, then update the same thread on day 30 and 90.</p>
-      <div id="previewThread"></div>
-      <button class="link-btn" type="button" data-go="threads">Read all 312 Owner Threads
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>
-      </button>
-    </section>
-
-    <section class="panel" aria-label="Dupes owners kept">
-      <div class="panel-head"><h2>Dupes owners kept</h2><span class="count">Still used at day 90</span></div>
-      <div class="dupe">
-        <span class="mini" style="background:var(--real-soft)"><svg viewBox="0 0 30 44"><rect x="10" y="1" width="10" height="9" rx="2" fill="#0B8A80"/><rect x="4" y="10" width="22" height="33" rx="7" fill="#FFFFFF"/><rect x="8" y="22" width="14" height="3" rx="1.5" fill="#0B8A80"/></svg></span>
-        <div><strong>DailyDew Hydrating Serum</strong><span>Rated 8.1 at day 90 &middot; 76% still using</span></div>
-        <span class="price">$12<small>save $26</small></span>
-      </div>
-      <div class="dupe">
-        <span class="mini" style="background:#EDE7FF"><svg viewBox="0 0 30 44"><rect x="10" y="1" width="10" height="9" rx="2" fill="#5B3FD6"/><rect x="4" y="10" width="22" height="33" rx="7" fill="#FFFFFF"/><rect x="8" y="22" width="14" height="3" rx="1.5" fill="#5B3FD6"/></svg></span>
-        <div><strong>Plain Lab Glow Drops</strong><span>Rated 7.6 at day 90 &middot; 68% still using</span></div>
-        <span class="price">$17<small>save $21</small></span>
-      </div>
-    </section>
-
-    <section class="decide" id="decide" aria-label="Decide">
-      <h2>Still want it?</h2>
-      <p>GlowDrop Dew Serum is $38. Give it 48 hours. If you still want it then, it&rsquo;s not just FOMO.</p>
-      <div class="row">
-        <button class="btn-wait" id="waitBtn" type="button">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2.5M9 2h6"/></svg>
-          <span id="waitText">Wait 48 hours</span>
-        </button>
-        <button class="btn-buy" id="buyBtn" type="button">Buy anyway</button>
-      </div>
-      <p class="note" id="waitNote" hidden></p>
-    </section>
-
-    <p class="footnote">Concept mock-up for Bulldog B.I.T.E. 2026. Products, people and numbers are illustrative.</p>
-  </section>
-
-  <!-- ================= THREADS ================= -->
-  <section class="view" id="view-threads" aria-label="Owner Threads" hidden>
-    <div class="view-title">
-      <h1>Owner Threads</h1>
-      <p>GlowDrop Dew Serum &middot; 312 threads from verified owners</p>
-    </div>
-    <div class="rules" role="note">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3 4 6v6c0 4.5 3.4 8 8 9 4.6-1 8-4.5 8-9V6z"/><path d="m8.5 12 2.5 2.5 4.5-5"/></svg>
-      <p><b>Only owners with a receipt can post.</b> No followers, no likes, no sponsored posts. Anyone can ask owners a question.</p>
-    </div>
-    <div class="filters" role="group" aria-label="Filter threads">
-      <button type="button" data-filter="all" aria-pressed="true">All</button>
-      <button type="button" data-filter="oily" aria-pressed="false">Oily skin</button>
-      <button type="button" data-filter="dry" aria-pressed="false">Dry skin</button>
-      <button type="button" data-filter="sensitive" aria-pressed="false">Sensitive</button>
-      <button type="button" data-filter="using" aria-pressed="false">Still using at day 90</button>
-    </div>
-    <div class="view" id="threadList"></div>
-    <p class="empty" id="threadEmpty" hidden>No threads match this filter yet.</p>
-    <p class="footnote">Concept mock-up. Names and posts are illustrative.</p>
-  </section>
-
-  <!-- ================= WAIT LIST ================= -->
-  <section class="view" id="view-wait" aria-label="Wait List" hidden>
-    <div class="view-title">
-      <h1>Wait List</h1>
-      <p>Wait 48 hours before a hype buy. We check back with you.</p>
-    </div>
-    <div class="saved">
-      <div><span>Saved this month</span><b id="savedAmt">$39</b></div>
-      <div class="skips"><strong id="skipCount">1</strong>hype buys skipped</div>
-    </div>
-
-    <p class="section-label">Waiting</p>
-    <div id="waitingSlot"><p class="empty">Nothing waiting. Tap <b>Wait 48 hours</b> on any product.</p></div>
-
-    <p class="section-label">Time to decide</p>
-    <article class="wait-item" id="lampItem">
-      <div class="wi-top">
-        <span class="mini" style="background:#FFF0E3"><svg viewBox="0 0 26 32"><circle cx="13" cy="12" r="9" fill="#FF9A3D"/><circle cx="13" cy="12" r="5" fill="#FFD27A"/><rect x="11" y="21" width="4" height="7" rx="1" fill="#151826"/><rect x="6" y="28" width="14" height="3" rx="1.5" fill="#151826"/></svg></span>
-        <div class="txt"><strong>AuraBeam Sunset Lamp</strong><span>$34 &middot; Reality Score 4.9 at day 30</span></div>
-      </div>
-      <div class="due" id="lampDue">
-        <p><b>48 hours are up.</b> 52% of owners stopped using it within a month. Do you still want it?</p>
-        <div class="row">
-          <button class="skip" type="button" id="lampSkip">Skip it</button>
-          <button class="keep" type="button" id="lampKeep">Yes, still want it</button>
-        </div>
-      </div>
-    </article>
-
-    <p class="section-label">Decided</p>
-    <article class="wait-item">
-      <div class="wi-top">
-        <span class="mini" style="background:#EDE7FF"><svg viewBox="0 0 26 32"><path d="M3 20c0-5 4-7 10-7s10 2 10 7v4H3z" fill="#7A5CFF"/><rect x="3" y="24" width="20" height="4" rx="2" fill="#151826"/></svg></span>
-        <div class="txt"><strong>CloudPuff Slides</strong><span>Skipped after 48 hours</span></div>
-      </div>
-      <div class="resolved"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12 5 5 9-10"/></svg>Saved $39</div>
-    </article>
-    <p class="footnote">Concept mock-up. Products and numbers are illustrative.</p>
-  </section>
-</main>
-
-<div class="ask-bar" id="askBar" hidden>
-  <button type="button" id="askBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3C6.5 3 2 6.9 2 11.6c0 2.6 1.4 4.9 3.6 6.5L5 21.5l4-2c1 .3 2 .4 3 .4 5.5 0 10-3.9 10-8.6S17.5 3 12 3Z"/></svg>Ask owners a question</button>
-</div>
-
-<div class="tabs">
-  <nav aria-label="App sections">
-    <button type="button" data-tab="check" aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>Check</button>
-    <button type="button" data-tab="threads"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="6" cy="5" r="2.2"/><circle cx="6" cy="19" r="2.2"/><path d="M6 7.2v9.6"/><path d="M11 5h9M11 12h9M11 19h6"/></svg>Threads</button>
-    <button type="button" data-tab="wait"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2.5M9 2h6"/></svg>Wait List<span class="badge-n" id="waitBadge" hidden>1</span></button>
-  </nav>
+  </div>
+  <div class="step locked" id="stepWrite">
+    <h3><i>2</i>Day 1: first impressions</h3>
+    <textarea id="postText" aria-label="Your Day 1 post">Everyone at Truman has one, so I finally caved. Keeps ice all day so far. Will update on day 30.</textarea>
+    <div class="rate" id="rate" aria-label="Rating out of 10"></div>
+  </div>
+  <button class="post-btn" id="postBtn" type="button" disabled>Post</button>
+  <p class="locked-note">Only verified buyers can post. Anyone can ask them questions.</p>
 </div>
 
 <div class="toast" id="toast" role="status"></div>
 
 <script>
 (function () {
-  /* ---------- Data (illustrative) ---------- */
-  var COLORS = { good: '#0B8A80', mid: '#B4480E', bad: '#F0266F' };
+  /* ================= Icons ================= */
+  var I = {
+    verified: '<svg class="verified" viewBox="0 0 24 24" aria-label="Receipt verified"><path fill="currentColor" d="M12 2 14.4 4l3.1-.3.9 3 2.7 1.6-1 3 1 3-2.7 1.6-.9 3-3.1-.3L12 22l-2.4-2-3.1.3-.9-3L2.9 15.7l1-3-1-3 2.7-1.6.9-3 3.1.3z"/><path d="m8 12.2 2.6 2.6L16 9.4" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+    flame: '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2c1.5 4.5 7 7 7 13a7 7 0 0 1-14 0c0-3.3 1.8-5.1 3-6.6.3 2.2 1.3 3.4 2.8 4C10.3 9 11 5.2 12 2Z"/></svg>',
+    reply: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M12 3C6.5 3 2 6.9 2 11.6c0 2.6 1.4 4.9 3.6 6.5L5 21.5l4-2c1 .3 2 .4 3 .4 5.5 0 10-3.9 10-8.6S17.5 3 12 3Z"/></svg>',
+    helpful: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 11v9H4v-9zM7 11l4-8c1.7 0 2.7 1.2 2.4 2.8L13 9h5.5a2 2 0 0 1 2 2.4l-1.3 6.8a2 2 0 0 1-2 1.8H7"/></svg>',
+    share: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 3 10 14M21 3l-7 18-4-7-7-4z"/></svg>',
+    ext: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7M9 7h8v8"/></svg>',
+    shield: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3 4 6v6c0 4.5 3.4 8 8 9 4.6-1 8-4.5 8-9V6z"/><path d="m8.5 12 2.5 2.5 4.5-5"/></svg>'
+  };
+  var IMG = {
+    serum: '<svg viewBox="0 0 30 44"><rect x="10" y="1" width="10" height="9" rx="2" fill="#151826"/><rect x="4" y="10" width="22" height="33" rx="7" fill="#FFFFFF"/><rect x="8" y="22" width="14" height="3" rx="1.5" fill="#F0266F"/><rect x="8" y="27" width="9" height="2" rx="1" fill="#F7A8C6"/></svg>',
+    tumbler: '<svg viewBox="0 0 34 48"><path d="M5 9h24l-3 36a3 3 0 0 1-3 3H11a3 3 0 0 1-3-3z" fill="#6FC3E8"/><rect x="3" y="4" width="28" height="6" rx="2" fill="#151826"/><path d="M29 14h2a4 4 0 0 1 4 4v8a4 4 0 0 1-4 4h-2" fill="none" stroke="#151826" stroke-width="3"/><rect x="21" y="0" width="3" height="6" rx="1" fill="#151826"/><rect x="11" y="20" width="12" height="2.5" rx="1.2" fill="#fff" opacity=".8"/></svg>',
+    lamp: '<svg viewBox="0 0 34 46"><circle cx="17" cy="16" r="14" fill="#FF9A3D"/><circle cx="17" cy="16" r="8" fill="#FFD27A"/><rect x="15" y="30" width="4" height="11" rx="1" fill="#151826"/><rect x="8" y="41" width="18" height="4" rx="2" fill="#151826"/></svg>',
+    slides: '<svg viewBox="0 0 46 30"><path d="M4 18c0-7 6-10 16-10s16 3 16 10v4H4z" fill="#B9A6FF"/><rect x="2" y="22" width="36" height="6" rx="3" fill="#151826"/><path d="M14 12c3-2 9-2 12 0" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round" opacity=".7"/></svg>'
+  };
+
+  /* ================= Data (illustrative) ================= */
+  function freshData() {
+    return [
+      { id: 'glow', name: 'Maya R.', ini: 'MR', color: '#FFD9E6', owned: 32, time: '2d', streak: 12,
+        product: 'GlowDrop Dew Serum', store: 'Amazon', price: '$38', img: 'serum', bg: 'linear-gradient(160deg,#FFE3EE,#F7B6CF)',
+        hype: 9.2, real: 5.8, regret: 41, replies: 24, helpful: 230, following: true,
+        entries: [
+          { day: 1, r: 9, text: 'Caved after seeing this on my FYP for the 50th time. First impression: the glow is real. Will update on day 30.' },
+          { day: 30, r: 5, text: 'Day 30 update: it pills under makeup and the glow is gone by noon. Not repurchasing.' }
+        ],
+        qa: [
+          { asker: 'Lena M.', ai: 'LM', ac: '#FFF0E3', t: '5h', q: 'Does it pill under sunscreen too?', a: 'Yes with mineral sunscreen. It was fine under a gel one.', h: 41 },
+          { asker: 'Chris D.', ai: 'CD', ac: '#E3EEFF', t: '1d', q: 'Is the big bottle worth it?', a: 'I would skip it. If you really want to try it, get the small one.', h: 18 }
+        ],
+        canned: {
+          'Does it work on oily skin?': 'Not for me. It pilled on my oily T-zone by day 10. Dry-skin owners in the comments seem happier with it.',
+          'Is it worth $38?': 'Honestly no. I get the same glow from a $12 drugstore serum now.',
+          'How strong is the smell?': 'Strong fruity scent for the first hour, then it fades. Might bother sensitive skin.'
+        } },
+      { id: 'flask', name: 'Jordan K.', ini: 'JK', color: '#DDF3F0', owned: 94, time: '3d', streak: 31,
+        product: 'FrostFlask 40 oz Tumbler', store: 'Walmart', price: '$29', img: 'tumbler', bg: 'linear-gradient(160deg,#E2F4FC,#A9DDF2)',
+        hype: 8.9, real: 8.6, regret: 8, replies: 11, helpful: 156, following: false,
+        entries: [
+          { day: 1, r: 8, text: 'Everyone on campus has one, so I gave in.' },
+          { day: 30, r: 9, text: 'Still ice after 12 hours. Fits my car cup holder.' },
+          { day: 90, r: 9, text: 'Day 90: the lid has not leaked once. Actually worth the hype.' }
+        ],
+        qa: [ { asker: 'Sam P.', ai: 'SP', ac: '#EEF1F6', t: '2d', q: 'Dishwasher safe?', a: 'Top rack only. The lid is fine in it too.', h: 22 } ],
+        canned: {
+          'Does it leak in a backpack?': 'Not with the straw lid closed. I have carried it in my bag for three months.',
+          'Is it worth $29?': 'Yes. It is the one viral thing I still use every day.',
+          'Does the paint chip?': 'A small chip on the bottom after I dropped it. Otherwise still looks new.'
+        } },
+      { id: 'lamp', name: 'Priya S.', ini: 'PS', color: '#FFF0E3', owned: 31, time: '4d', streak: 5,
+        product: 'AuraBeam Sunset Lamp', store: 'Amazon', price: '$34', img: 'lamp', bg: 'linear-gradient(160deg,#FFE9D2,#FFB774)',
+        hype: 8.7, real: 4.9, regret: 52, replies: 9, helpful: 98, following: true,
+        entries: [
+          { day: 1, r: 8, text: 'My room looks like a TikTok set now.' },
+          { day: 30, r: 4, text: 'Day 30: the novelty wore off in a week. It lives in my closet.' }
+        ],
+        qa: [ { asker: 'Mia W.', ai: 'MW', ac: '#FFE3EE', t: '3d', q: 'Is it bright enough to read with?', a: 'No, it is only mood lighting. Too dim for anything else.', h: 15 } ],
+        canned: {
+          'Is it bright enough?': 'Only for photos. Too dim to actually light a room.',
+          'Is it worth $34?': 'Not for me. Fun for one week, then I stopped turning it on.',
+          'Does the remote work well?': 'The remote is flimsy. Mine stopped working in week two.'
+        } },
+      { id: 'slides', name: 'Alex T.', ini: 'AT', color: '#EDE7FF', owned: 3, time: '3h', streak: 2,
+        product: 'CloudPuff Slides', store: 'Walmart', price: '$24', img: 'slides', bg: 'linear-gradient(160deg,#F1ECFF,#CDBEFF)',
+        hype: 8.1, real: null, regret: null, replies: 4, helpful: 12, following: false,
+        entries: [ { day: 1, r: 7, text: 'Comfy so far, but the sole already looks a little worn. Day 30 update coming.' } ],
+        due: 'Day 30 update due Dec 7',
+        qa: [ { asker: 'Ben L.', ai: 'BL', ac: '#DDF3F0', t: '1h', q: 'True to size?', a: 'Run a half size big. I sized down.', h: 6 } ],
+        canned: {
+          'True to size?': 'They run a half size big, so I would size down.',
+          'Good for walking to class?': 'Fine for short walks. Not great on wet sidewalks.',
+          'Is it worth $24?': 'Too early to say. Ask me again on day 30.'
+        } }
+    ];
+  }
+  var POSTS = freshData();
+  var me = { streak: 12, helpful: 48, buys: 6, goal: 50 };
+  var currentFeed = 'foryou', currentTab = 'home', openId = null, newPostAdded = false;
+
   function tone(r) { return r >= 7 ? 'good' : r >= 5 ? 'mid' : 'bad'; }
+  function byId(id) { for (var i = 0; i < POSTS.length; i++) if (POSTS[i].id === id) return POSTS[i]; }
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
 
-  var THREADS = [
-    { id: 'maya', name: 'Maya R.', skin: 'Combination, oily T-zone', tags: ['oily'], owned: 92, bg: '#FFE3EE', helped: 230,
-      posts: [
-        { day: 1, r: 9, text: 'The glow is unreal. Looks exactly like the videos.' },
-        { day: 30, r: 6, text: 'Starting to pill under foundation. The glow is gone by noon.' },
-        { day: 90, r: 4, text: 'Stopped using it. A $12 drugstore serum does the same for me.', stopped: true }
-      ] },
-    { id: 'priya', name: 'Priya S.', skin: 'Dry skin', tags: ['dry', 'using'], owned: 95, bg: '#DDF3F0', helped: 184,
-      posts: [
-        { day: 1, r: 8, text: 'Very hydrating. Strong scent at first.' },
-        { day: 30, r: 8, text: 'Still using it every morning. Flaky patches are gone.' },
-        { day: 90, r: 8, text: 'On my second bottle. Great for dry skin, but I would skip it if you are oily.' }
-      ] },
-    { id: 'jordan', name: 'Jordan K.', skin: 'Sensitive skin', tags: ['sensitive'], owned: 9, bg: '#FFF0E3', helped: 141,
-      posts: [
-        { day: 1, r: 7, text: 'Smells strong, but my skin feels soft.' },
-        { day: 7, r: 3, text: 'Red patches on both cheeks. Fragrance is high on the ingredient list.', stopped: true, stopLabel: 'Returned on day 9' }
-      ] },
-    { id: 'ana', name: 'Ana T.', skin: 'Normal skin', tags: [], owned: 33, bg: '#EDE7FF', helped: 57,
-      posts: [
-        { day: 1, r: 9, text: 'Bought it after the video. Packaging is gorgeous.' },
-        { day: 30, r: 6, text: 'Fine, not magic. I mostly bought it because everyone had it.' },
-        { day: 90, pending: true, text: 'Day 90 update due in 57 days' }
-      ] }
-  ];
-  var QUESTION = { tags: ['oily'], asker: 'Lena M.', q: 'Does it pill under sunscreen? I have oily skin.',
-    answers: [
-      { name: 'Maya R.', owned: 92, text: 'Yes with mineral sunscreen. It is fine under a gel sunscreen.' },
-      { name: 'Chris D.', owned: 64, text: 'Pilled for me too. Patting it in and waiting 2 minutes helped a bit.' }
-    ] };
-
-  var CHECK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12 5 5 9-10"/></svg>';
-  var HELP = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 11v9H4v-9zM7 11l4-8c1.7 0 2.7 1.2 2.4 2.8L13 9h5.5a2 2 0 0 1 2 2.4l-1.3 6.8a2 2 0 0 1-2 1.8H7"/></svg>';
-
-  function initials(n) { return n.split(' ').map(function (p) { return p[0]; }).join('').replace('.', ''); }
-
-  function threadHTML(t) {
-    var items = t.posts.map(function (p) {
-      if (p.pending) {
-        return '<li class="pending"><span class="dot" style="color:#C9CDD8"></span>' +
-          '<div class="when">Day 90</div><p>' + p.text + '</p></li>';
-      }
-      var c = COLORS[tone(p.r)];
-      return '<li><span class="dot" style="color:' + c + '"></span>' +
-        '<div class="when" style="color:' + c + '">Day ' + p.day + '<span class="r">' + p.r + '/10</span></div>' +
-        '<p>' + p.text + '</p>' +
-        (p.stopped ? '<span class="stopped">' + (p.stopLabel || 'Stopped using it') + '</span>' : '') + '</li>';
-    }).join('');
-    return '<article class="thread" data-tags="' + t.tags.join(' ') + '">' +
-      '<div class="t-head"><span class="pic" style="background:' + t.bg + '">' + initials(t.name) + '</span>' +
-      '<div class="meta"><div class="name">' + t.name + ' <small>' + t.skin + '</small></div>' +
-      '<div><span class="chip ok">' + CHECK + 'Receipt verified</span> <span class="chip owned">Owned ' + t.owned + ' days</span></div></div></div>' +
-      '<ol class="chain">' + items + '</ol>' +
-      '<div class="t-foot"><span class="helped">' + HELP + 'Helped ' + t.helped + ' people decide</span>' +
-      '<button type="button" data-ask="' + t.name + '">Ask ' + t.name.split(' ')[0] + '</button></div></article>';
+  /* ================= Renderers ================= */
+  function productHTML(p) {
+    return '<div class="product">' +
+      '<div class="pimg" style="background:' + p.bg + '"><span class="store-tag">' + p.store + '</span>' + IMG[p.img] + '</div>' +
+      '<div class="pbar"><div><strong>' + p.product + '</strong><span>' + p.store + ' &middot; ' + p.price + '</span></div>' +
+      '<a class="buy" href="#" data-buy="' + p.id + '">Buy on ' + p.store + I.ext + '</a></div>' +
+      '<p class="disclose">HypeCheck may earn a commission. Reviewers never do.</p></div>';
+  }
+  function scoresHTML(p) {
+    if (p.real == null) return '<div class="scores"><span class="sc h">Hype ' + p.hype.toFixed(1) + '</span><span class="sc wait">Reality score in 27 days</span></div>';
+    return '<div class="scores"><span class="sc h">Hype ' + p.hype.toFixed(1) + '</span><span class="sc r">Reality ' + p.real.toFixed(1) + '</span><span class="sc g">' + p.regret + '% regret</span></div>';
+  }
+  function entryHTML(p, e, i, total, full) {
+    var last = i === total - 1;
+    var html = '<div class="entry"><div class="rail"><span class="av" style="background:' + p.color + '">' + p.ini + '</span>' + (last ? '' : '<span class="thread-line"></span>') + '</div><div class="entry-body">';
+    html += '<div class="who"><b>' + p.name + '</b>' + I.verified + (i === 0 ? '<span class="streak-mini" data-streak="' + p.id + '">' + I.flame + p.streak + '</span>' : '') + '<span class="t">&middot; ' + (i === 0 ? p.time : 'update') + '</span></div>';
+    html += '<div class="sub"><span class="day ' + tone(e.r) + '">Day ' + e.day + ' <span class="r">' + e.r + '/10</span></span>' + (i === 0 ? '<span>Receipt verified &middot; Owned ' + p.owned + ' days</span>' : '') + '</div>';
+    html += '<p class="txt">' + esc(e.text) + '</p>';
+    if (i === 0) html += productHTML(p) + scoresHTML(p);
+    if (last) {
+      if (p.due) html += '<p class="due">' + p.due + '</p>';
+      html += '<div class="actions">' +
+        '<button type="button" class="act" data-open="' + p.id + '" aria-label="Questions">' + I.reply + '<span data-count-replies="' + p.id + '">' + p.replies + '</span></button>' +
+        '<button type="button" class="act" data-helpful-post="' + p.id + '" aria-label="Helpful">' + I.helpful + '<span>' + p.helpful + '</span></button>' +
+        '<button type="button" class="act" data-share aria-label="Share">' + I.share + '</button>' +
+        (full ? '' : '<button type="button" class="act ask" data-open="' + p.id + '">Ask ' + p.name.split(' ')[0] + '</button>') +
+        '</div>';
+    }
+    return html + '</div></div>';
+  }
+  function postHTML(p, full) {
+    var entries = full ? p.entries : p.entries.slice(0, 1).concat(p.entries.length > 1 ? [p.entries[p.entries.length - 1]] : []);
+    var html = '<article class="post' + (full ? '' : ' tappable') + '" data-post="' + p.id + '">';
+    entries.forEach(function (e, i) { html += entryHTML(p, e, i, entries.length, full); });
+    return html + '</article>';
+  }
+  function qaHTML(p, item, fresh) {
+    var html = '<div class="qa' + (fresh ? ' fresh' : '') + '">' +
+      '<div class="entry"><div class="rail"><span class="av" style="background:' + item.ac + '">' + item.ai + '</span>' + (item.a || item.typing ? '<span class="thread-line"></span>' : '') + '</div>' +
+      '<div class="entry-body"><div class="who"><b>' + esc(item.asker) + '</b><span class="asker-chip">Asking</span><span class="t">&middot; ' + item.t + '</span></div><p class="txt">' + esc(item.q) + '</p></div></div>';
+    if (item.typing) {
+      html += '<div class="entry"><div class="rail"><span class="av sm" style="background:' + p.color + '">' + p.ini + '</span></div><div class="entry-body"><div class="who"><b>' + p.name + '</b><span class="owner-chip">Owner</span></div><div class="typing" aria-label="' + p.name + ' is typing"><i></i><i></i><i></i></div></div></div>';
+    } else if (item.a) {
+      html += '<div class="entry"><div class="rail"><span class="av sm" style="background:' + p.color + '">' + p.ini + '</span></div><div class="entry-body">' +
+        '<div class="who"><b>' + p.name + '</b>' + I.verified + '<span class="owner-chip">Owner</span><span class="streak-mini" data-streak="' + p.id + '">' + I.flame + p.streak + '</span><span class="t">&middot; ' + (item.at || item.t) + '</span></div>' +
+        '<p class="txt">' + esc(item.a) + '</p>' +
+        '<div class="actions"><button type="button" class="act' + (item.on ? ' on' : '') + '" data-helpful-qa="' + item.k + '">' + I.helpful + '<span>Helpful &middot; ' + item.h + '</span></button></div></div></div>';
+    }
+    return html + '</div>';
   }
 
-  function questionHTML(q) {
-    var ans = q.answers.map(function (a) {
-      return '<div class="answer"><div class="who">' + a.name + ' <span class="chip owned">Owned ' + a.owned + ' days</span></div><p>' + a.text + '</p></div>';
-    }).join('');
-    return '<article class="thread" data-tags="' + q.tags.join(' ') + '">' +
-      '<div class="t-head"><span class="pic" style="background:#EEF1F6">' + initials(q.asker) + '</span>' +
-      '<div class="meta"><div class="name">' + q.asker + '</div><div><span class="chip ask">Asking owners</span></div></div></div>' +
-      '<p class="question">' + q.q + '</p><div class="answers">' + ans + '</div></article>';
-  }
-
-  var list = document.getElementById('threadList');
-  list.innerHTML = threadHTML(THREADS[0]) + questionHTML(QUESTION) + threadHTML(THREADS[1]) + threadHTML(THREADS[2]) + threadHTML(THREADS[3]);
-  document.getElementById('previewThread').innerHTML = threadHTML(THREADS[0]).replace('class="thread"', 'class="thread" style="padding:0"');
-
-  /* ---------- Toast ---------- */
-  var toastEl = document.getElementById('toast'), toastT = 0;
-  function toast(msg) {
-    toastEl.textContent = msg; toastEl.classList.add('show');
-    clearTimeout(toastT); toastT = setTimeout(function () { toastEl.classList.remove('show'); }, 2600);
-  }
-
-  /* ---------- Tabs ---------- */
-  var views = { check: 'view-check', threads: 'view-threads', wait: 'view-wait' };
-  var askBar = document.getElementById('askBar');
-  function go(tab) {
-    Object.keys(views).forEach(function (k) { document.getElementById(views[k]).hidden = k !== tab; });
-    document.querySelectorAll('.tabs button').forEach(function (b) {
-      if (b.dataset.tab === tab) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current');
+  function renderHome() {
+    var list = POSTS.filter(function (p) {
+      if (currentFeed === 'following') return p.following || p.mine;
+      if (currentFeed === 'day30') return p.entries.some(function (e) { return e.day >= 30; });
+      return true;
     });
-    askBar.hidden = tab !== 'threads';
+    document.getElementById('v-home').innerHTML = list.map(function (p) { return postHTML(p, false); }).join('') +
+      '<p class="foot">Concept mock-up for Bulldog B.I.T.E. 2026. Products, people and numbers are illustrative.</p>';
+  }
+
+  function renderDetail() {
+    var p = byId(openId); if (!p) return;
+    p.qa.forEach(function (q, i) { if (!q.k) q.k = p.id + '-' + i + '-' + Math.random().toString(36).slice(2, 6); });
+    document.getElementById('v-detail').innerHTML = postHTML(p, true) +
+      '<div class="q-head"><h2>Questions for ' + p.name.split(' ')[0] + '</h2><span><span data-count-replies="' + p.id + '">' + p.replies + '</span> total</span></div>' +
+      '<div class="rule">' + I.shield + '<span>Only the verified owner answers here. Every answer keeps their streak alive.</span></div>' +
+      '<div id="qaList">' + p.qa.map(function (q) { return qaHTML(p, q, q.fresh); }).join('') + '</div>' +
+      '<p class="foot">Concept mock-up. Names and posts are illustrative.</p>';
+    p.qa.forEach(function (q) { q.fresh = false; });
+    var sug = document.getElementById('suggest');
+    sug.innerHTML = Object.keys(p.canned).map(function (q) { return '<button type="button" data-suggest="' + esc(q) + '">' + esc(q) + '</button>'; }).join('');
+    document.getElementById('askInput').placeholder = 'Ask ' + p.name.split(' ')[0] + ' about this product...';
+  }
+
+  function renderSearch() {
+    var rows = POSTS.filter(function (p) { return !p.mine; }).map(function (p) {
+      var gap = p.real == null ? null : (p.hype - p.real);
+      var bar = gap == null ? '' : '<span class="gapbar"><i style="left:' + (p.real * 10) + '%;right:' + (100 - p.hype * 10) + '%"></i></span>';
+      return '<button type="button" class="trend-row" data-open="' + p.id + '"><span class="mini" style="background:' + p.bg + '">' + IMG[p.img] + '</span>' +
+        '<span class="info"><strong>' + p.product + '</strong><span class="gap">' +
+        (gap == null ? 'Hype ' + p.hype.toFixed(1) + ' &middot; reality pending' : 'Hype ' + p.hype.toFixed(1) + ' &rarr; Reality ' + p.real.toFixed(1)) + bar + '</span></span></button>';
+    }).join('');
+    document.getElementById('v-search').innerHTML =
+      '<div class="pad"><div class="search-box">' + '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>' + 'Search a product or paste a TikTok link</div></div>' +
+      '<p class="sec-label">Trending this week &middot; Hype vs Reality</p>' + rows +
+      '<p class="foot">The bar shows the gap between social media hype and what verified owners say at day 30.</p>';
+  }
+
+  function renderActivity() {
+    var n = [
+      { ic: I.reply, bg: '#FFF0E3', c: '#B4480E', html: '<b>Lena M.</b> asked about your <b>AuraBeam Sunset Lamp</b> post <span>&middot; 2m</span>', btn: '<button type="button" class="pill dark" data-toast="Answer sent. Streak saved for today.">Answer</button>' },
+      { ic: I.flame, bg: '#FFE9D6', c: '#FF7A1A', html: '<b>Keep your 12-day streak.</b> 3 questions are waiting for you <span>&middot; 1h</span>', btn: '' },
+      { ic: I.helpful, bg: '#DDF3F0', c: '#0B8A80', html: '<b>Chris D.</b> marked your answer Helpful <span>&middot; 3h</span>', btn: '' },
+      { ic: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M8 2v4M16 2v4M3 10h18"/></svg>', bg: '#EDE7FF', c: '#5B3FD6', html: '<b>Day 30 check-in:</b> how is your FrostFlask holding up? <span>&middot; 5h</span>', btn: '<button type="button" class="pill" data-toast="Day 30 update posted to your thread.">Update</button>' },
+      { ic: I.verified.replace('class="verified"', ''), bg: '#FFE3EE', c: '#F0266F', html: '<b>Maya R.</b> posted a Day 30 update on <b>GlowDrop Dew Serum</b> <span>&middot; 2d</span>', btn: '<button type="button" class="pill" data-open="glow">View</button>' }
+    ];
+    document.getElementById('v-activity').innerHTML = '<h1 class="view-h">Activity</h1>' + n.map(function (x) {
+      return '<div class="notif"><span class="ico" style="background:' + x.bg + ';color:' + x.c + '">' + x.ic + '</span><p>' + x.html + '</p>' + (x.btn || '<span></span>') + '</div>';
+    }).join('') + '<p class="foot">Questions from shoppers bring owners back to update their reviews.</p>';
+  }
+
+  function renderProfile() {
+    var days = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
+    var week = days.map(function (d, i) { return '<span><i class="on' + (i === 6 ? ' today' : '') + '">' + I.flame + '</i>' + d + '</span>'; }).join('');
+    var pct = Math.min(100, Math.round(me.helpful / me.goal * 100));
+    var mine = POSTS.filter(function (p) { return p.mine; });
+    document.getElementById('v-profile').innerHTML =
+      '<div class="prof-top"><div><h1>Ngoc Le</h1><span class="handle">@ngoc.checks</span></div><span class="av" style="background:#E9E2FF">NL</span></div>' +
+      '<p class="bio">Skincare and dorm finds. I only review what I actually bought.</p>' +
+      '<div class="badges"><span class="badge trust">' + I.shield + 'Trusted Owner</span><span class="badge found"><svg viewBox="0 0 24 24" fill="currentColor"><path d="m12 2 2.6 6.6L21 9.3l-5 4.4 1.6 6.8L12 17l-5.6 3.5L8 13.7 3 9.3l6.4-.7z"/></svg>Founding 100 &middot; Premium free until Dec 10</span></div>' +
+      '<div class="stats"><div class="stat"><b>' + I.flame + me.streak + '</b><span>day answer streak</span></div><div class="stat"><b>' + me.helpful + '</b><span>Helpful answers</span></div><div class="stat"><b>' + me.buys + '</b><span>verified buys</span></div></div>' +
+      '<div class="card"><h3>This week</h3><div class="week">' + week + '</div><p>Answer at least one shopper question a day to keep your streak.</p></div>' +
+      '<div class="card"><h3>Next reward: 1 free month of Premium</h3><div class="progress"><i style="width:' + pct + '%"></i></div><p><b style="color:var(--ink)">' + (me.goal - me.helpful) + ' more Helpful answers</b> to unlock it. Helpful votes come from the shoppers you help.</p></div>' +
+      '<div class="prof-tabs"><span class="on">Posts</span><span>Answers</span></div>' +
+      (mine.length ? mine.map(function (p) { return postHTML(p, false); }).join('') : '<p class="foot">Your verified posts show up here. Tap + to post one.</p>');
+  }
+
+  /* ================= Navigation ================= */
+  var views = ['home', 'detail', 'search', 'activity', 'profile'];
+  var main = document.getElementById('main');
+  function show(view) {
+    views.forEach(function (v) { document.getElementById('v-' + v).hidden = v !== view; });
+    var isDetail = view === 'detail';
+    document.getElementById('feedTabs').hidden = view !== 'home';
+    document.getElementById('backBtn').hidden = !isDetail;
+    document.getElementById('barSpacer').hidden = isDetail;
+    document.getElementById('logo').hidden = isDetail;
+    document.getElementById('barTitle').hidden = !isDetail;
+    document.getElementById('composer').hidden = !isDetail;
+    document.getElementById('nav').hidden = isDetail;
+    main.classList.toggle('with-composer', isDetail);
     window.scrollTo(0, 0);
   }
-  document.querySelectorAll('[data-tab]').forEach(function (b) { b.addEventListener('click', function () { go(b.dataset.tab); }); });
-  document.querySelectorAll('[data-go]').forEach(function (b) { b.addEventListener('click', function () { go(b.dataset.go); }); });
+  function go(tab) {
+    currentTab = tab;
+    document.querySelectorAll('.nav [data-tab]').forEach(function (b) {
+      if (b.dataset.tab === tab) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current');
+    });
+    if (tab === 'home') renderHome();
+    if (tab === 'search') renderSearch();
+    if (tab === 'activity') { renderActivity(); document.getElementById('actDot').hidden = true; }
+    if (tab === 'profile') renderProfile();
+    show(tab);
+  }
+  function openPost(id) { openId = id; renderDetail(); show('detail'); }
 
-  /* ---------- Thread filters ---------- */
-  var filterBtns = document.querySelectorAll('.filters button');
-  filterBtns.forEach(function (b) {
+  document.querySelectorAll('.nav [data-tab]').forEach(function (b) { b.addEventListener('click', function () { go(b.dataset.tab); }); });
+  document.getElementById('backBtn').addEventListener('click', function () { go(currentTab); });
+  document.querySelectorAll('#feedTabs button').forEach(function (b) {
     b.addEventListener('click', function () {
-      filterBtns.forEach(function (x) { x.setAttribute('aria-pressed', String(x === b)); });
-      var f = b.dataset.filter, shown = 0;
-      list.querySelectorAll('.thread').forEach(function (t) {
-        var ok = f === 'all' || (' ' + t.dataset.tags + ' ').indexOf(' ' + f + ' ') > -1;
-        t.hidden = !ok; if (ok) shown++;
-      });
-      document.getElementById('threadEmpty').hidden = shown > 0;
+      currentFeed = b.dataset.feed;
+      document.querySelectorAll('#feedTabs button').forEach(function (x) { x.setAttribute('aria-selected', String(x === b)); });
+      renderHome();
     });
   });
+
+  /* ================= Toast ================= */
+  var toastEl = document.getElementById('toast'), toastT = 0;
+  function toast(html) {
+    toastEl.innerHTML = html; toastEl.classList.add('show');
+    clearTimeout(toastT); toastT = setTimeout(function () { toastEl.classList.remove('show'); }, 2800);
+  }
+
+  /* ================= Global clicks ================= */
   document.addEventListener('click', function (e) {
-    var a = e.target.closest('[data-ask]');
-    if (a) toast('Question sent to ' + a.dataset.ask + '. Owners usually reply within a day.');
-  });
-  document.getElementById('askBtn').addEventListener('click', function () {
-    toast('Your question goes to 312 verified owners.');
-  });
-
-  /* ---------- Score gauge ---------- */
-  var HYPE = 9.2, REAL = 5.8, C = 2 * Math.PI * 88, ARC = C * 0.75;
-  var score = document.getElementById('score'), bar = document.getElementById('bar');
-  var num = document.getElementById('num'), labelText = document.getElementById('labelText');
-  var verdict = document.getElementById('verdict'), revealText = document.getElementById('revealText');
-  var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  var shown = false, raf = 0;
-  function dash(v) { return (ARC * v / 10) + ' ' + C; }
-  document.getElementById('track').setAttribute('stroke-dasharray', ARC + ' ' + C);
-  document.getElementById('ghost').setAttribute('stroke-dasharray', dash(HYPE));
-  bar.setAttribute('stroke-dasharray', dash(HYPE));
-  function countTo(from, to, ms) {
-    cancelAnimationFrame(raf);
-    if (reduce) { num.textContent = to.toFixed(1); return; }
-    var t0 = performance.now();
-    (function step(t) {
-      var p = Math.min(1, (t - t0) / ms), e = p < .5 ? 2 * p * p : 1 - Math.pow(-2 * p + 2, 2) / 2;
-      num.textContent = (from + (to - from) * e).toFixed(1);
-      if (p < 1) raf = requestAnimationFrame(step);
-    })(t0);
-  }
-  function showReality() {
-    shown = true; score.classList.add('is-real'); bar.setAttribute('stroke-dasharray', dash(REAL));
-    countTo(HYPE, REAL, 1300); labelText.textContent = 'Reality after 30 days';
-    verdict.innerHTML = '<strong>41% of verified buyers</strong> regret it after 30 days.';
-    revealText.textContent = 'Show the hype again';
-  }
-  function showHype() {
-    shown = false; score.classList.remove('is-real'); bar.setAttribute('stroke-dasharray', dash(HYPE));
-    countTo(parseFloat(num.textContent) || REAL, HYPE, 700); labelText.textContent = 'Hype Score';
-    verdict.textContent = 'Everyone is posting about it. How does it hold up after the hype?';
-    revealText.textContent = 'Check the reality';
-  }
-  document.getElementById('reveal').addEventListener('click', function () { shown ? showHype() : showReality(); });
-
-  /* ---------- Wait 48 hours ---------- */
-  var decide = document.getElementById('decide'), waitText = document.getElementById('waitText');
-  var waitNote = document.getElementById('waitNote'), waitBadge = document.getElementById('waitBadge');
-  var slot = document.getElementById('waitingSlot');
-  var EMPTY_WAIT = slot.innerHTML, waitEnd = 0, timerT = 0, waiting = false;
-
-  function fmtBack(d) {
-    return d.toLocaleDateString('en-US', { weekday: 'short' }) + ' at ' + d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
-  }
-  function pad(n) { return (n < 10 ? '0' : '') + n; }
-  function tick() {
-    var ms = Math.max(0, waitEnd - Date.now()), s = Math.floor(ms / 1000);
-    var el = document.getElementById('timer'), pr = document.getElementById('waitProg');
-    if (!el) return;
-    el.firstChild.nodeValue = Math.floor(s / 3600) + ':' + pad(Math.floor(s / 60) % 60) + ':' + pad(s % 60);
-    pr.style.width = (100 - ms / (48 * 36000)) + '%';
-  }
-  function startWait() {
-    waiting = true; waitEnd = Date.now() + 48 * 3600 * 1000;
-    decide.classList.add('is-waiting'); waitText.textContent = 'Added to Wait List';
-    waitNote.hidden = false; waitNote.textContent = 'We will check back ' + fmtBack(new Date(waitEnd)) + ' with the latest Reality Score.';
-    waitBadge.hidden = false;
-    slot.innerHTML = '<article class="wait-item"><div class="wi-top">' +
-      '<span class="mini" style="background:linear-gradient(160deg,#FFD6E6,#F7A8C6)"><svg viewBox="0 0 30 44"><rect x="10" y="1" width="10" height="9" rx="2" fill="#151826"/><rect x="4" y="10" width="22" height="33" rx="7" fill="#FFFFFF" opacity=".92"/><rect x="8" y="22" width="14" height="3" rx="1.5" fill="#F0266F"/></svg></span>' +
-      '<div class="txt"><strong>GlowDrop Dew Serum</strong><span>$38 &middot; Reality Score 5.8</span></div>' +
-      '<div class="timer" id="timer">48:00:00<small>left to cool off</small></div></div>' +
-      '<div class="progress"><i id="waitProg" style="width:0%"></i></div></article>';
-    clearInterval(timerT); tick(); timerT = setInterval(tick, 1000);
-    toast('Added to your Wait List. We will check back in 48 hours.');
-  }
-  document.getElementById('waitBtn').addEventListener('click', function () {
-    if (waiting) { go('wait'); return; }
-    startWait();
-  });
-  document.getElementById('buyBtn').addEventListener('click', function () {
-    toast('Concept demo: this would open the store you choose.');
+    var t = e.target;
+    var buy = t.closest('[data-buy]');
+    if (buy) { e.preventDefault(); e.stopPropagation(); var bp = byId(buy.dataset.buy); toast('Opens ' + bp.store + '. HypeCheck may earn a commission; ' + bp.name.split(' ')[0] + ' does not.'); return; }
+    var hp = t.closest('[data-helpful-post]');
+    if (hp) {
+      e.stopPropagation();
+      var p = byId(hp.dataset.helpfulPost); var on = hp.classList.toggle('on');
+      p.helpful += on ? 1 : -1; hp.querySelector('span').textContent = p.helpful; return;
+    }
+    var hq = t.closest('[data-helpful-qa]');
+    if (hq) {
+      var pp = byId(openId), item = null;
+      pp.qa.forEach(function (q) { if (q.k === hq.dataset.helpfulQa) item = q; });
+      if (!item) return;
+      item.on = !item.on; item.h += item.on ? 1 : -1; hq.classList.toggle('on', item.on);
+      hq.querySelector('span').innerHTML = 'Helpful &middot; ' + item.h;
+      if (item.on) toast(I.flame + '<span>' + pp.name.split(' ')[0] + ' is 1 step closer to a free month of Premium.</span>');
+      return;
+    }
+    if (t.closest('[data-share]')) { e.stopPropagation(); toast('Link copied. Share the honest version.'); return; }
+    var tt = t.closest('[data-toast]'); if (tt) { toast(tt.dataset.toast); return; }
+    var sg = t.closest('[data-suggest]');
+    if (sg) { var inp = document.getElementById('askInput'); inp.value = sg.dataset.suggest; inp.dispatchEvent(new Event('input')); inp.focus({ preventScroll: true }); return; }
+    var op = t.closest('[data-open]'); if (op) { e.stopPropagation(); openPost(op.dataset.open); return; }
+    var post = t.closest('.post.tappable'); if (post) { openPost(post.dataset.post); }
   });
 
-  /* ---------- Decision on the lamp ---------- */
-  var saved = 39, skips = 1;
-  var lampDue = document.getElementById('lampDue'), LAMP_HTML = lampDue.innerHTML;
-  function bindLamp() {
-    document.getElementById('lampSkip').addEventListener('click', function () {
-      saved += 34; skips += 1; renderSaved();
-      lampDue.outerHTML = '<div class="resolved" id="lampDue">' + CHECK + 'Skipped. Saved $34</div>';
-      lampDue = document.getElementById('lampDue');
-      toast('Nice. That is $34 that stayed in your wallet.');
-    });
-    document.getElementById('lampKeep').addEventListener('click', function () {
-      lampDue.outerHTML = '<div class="resolved" id="lampDue" style="color:var(--ink)">' + CHECK + 'You waited and still want it. Enjoy it!</div>';
-      lampDue = document.getElementById('lampDue');
-    });
-  }
-  function renderSaved() {
-    document.getElementById('savedAmt').textContent = '$' + saved;
-    document.getElementById('skipCount').textContent = skips;
-  }
-  bindLamp();
-
-  /* ---------- Intro: share from the video ---------- */
-  var intro = document.getElementById('intro'), steps = document.querySelectorAll('#steps li'), introT = [];
-  function openSheet() { intro.classList.add('sheet-open'); }
-  document.getElementById('shareBtn').addEventListener('click', openSheet);
-  document.querySelector('.video').addEventListener('click', openSheet);
-  document.getElementById('scrim').addEventListener('click', function () { intro.classList.remove('sheet-open'); });
-  document.getElementById('openHC').addEventListener('click', function () {
-    intro.classList.add('scanning');
-    var d = reduce ? 150 : 520;
-    steps.forEach(function (li, i) { introT.push(setTimeout(function () { li.classList.add('done'); }, d * (i + 1))); });
-    introT.push(setTimeout(function () {
-      intro.classList.add('gone'); document.body.classList.remove('locked'); window.scrollTo(0, 0);
-    }, d * 4 + 200));
+  /* ================= Ask flow ================= */
+  var askInput = document.getElementById('askInput'), sendBtn = document.getElementById('sendBtn'), askTimers = [];
+  askInput.addEventListener('input', function () { sendBtn.disabled = !askInput.value.trim(); });
+  askInput.addEventListener('keydown', function (e) { if (e.key === 'Enter' && !sendBtn.disabled) sendBtn.click(); });
+  sendBtn.addEventListener('click', function () {
+    var p = byId(openId), q = askInput.value.trim(); if (!p || !q) return;
+    askInput.value = ''; sendBtn.disabled = true; askInput.blur();
+    var item = { asker: 'Ngoc L. (you)', ai: 'NL', ac: '#E9E2FF', t: 'now', q: q, typing: true, h: 0, fresh: true };
+    item.k = p.id + '-new-' + Date.now();
+    p.qa.unshift(item); p.replies += 1; renderDetail();
+    var list = document.getElementById('qaList'); if (list) window.scrollTo({ top: list.getBoundingClientRect().top + window.scrollY - 130, behavior: 'smooth' });
+    askTimers.push(setTimeout(function () {
+      item.typing = false; item.at = 'now';
+      item.a = p.canned[q] || 'Good question. For me it really depends on your skin type, but I stopped using it after week three.';
+      p.streak += 1; renderDetail();
+      toast(I.flame + '<span>' + p.name.split(' ')[0] + ' answered. Her streak is now ' + p.streak + ' days.</span>');
+    }, 1700));
   });
 
-  /* ---------- Reset the whole demo: double-tap the logo ---------- */
-  document.getElementById('brand').addEventListener('dblclick', function () {
-    introT.forEach(clearTimeout); introT = [];
-    intro.classList.remove('gone', 'scanning', 'sheet-open'); document.body.classList.add('locked');
-    steps.forEach(function (li) { li.classList.remove('done'); });
-    showHype(); go('check');
-    waiting = false; clearInterval(timerT); decide.classList.remove('is-waiting');
-    waitText.textContent = 'Wait 48 hours'; waitNote.hidden = true; waitBadge.hidden = true; slot.innerHTML = EMPTY_WAIT;
-    saved = 39; skips = 1; renderSaved();
-    lampDue.outerHTML = '<div class="due" id="lampDue">' + LAMP_HTML + '</div>';
-    lampDue = document.getElementById('lampDue'); bindLamp();
-    document.querySelector('.filters button[data-filter="all"]').click();
+  /* ================= Compose (verified post) ================= */
+  var sheet = document.getElementById('sheet'), scrim = document.getElementById('scrim');
+  var rateEl = document.getElementById('rate'), chosen = 9;
+  rateEl.innerHTML = Array.apply(null, Array(10)).map(function (_, i) { return '<button type="button" aria-pressed="' + (i + 1 === chosen) + '">' + (i + 1) + '</button>'; }).join('');
+  rateEl.addEventListener('click', function (e) {
+    var b = e.target.closest('button'); if (!b) return; chosen = +b.textContent;
+    rateEl.querySelectorAll('button').forEach(function (x) { x.setAttribute('aria-pressed', String(x === b)); });
   });
+  function resetSheet() {
+    document.getElementById('proofBtns').hidden = false; document.getElementById('scanning').hidden = true; document.getElementById('okReceipt').hidden = true;
+    document.getElementById('stepWrite').classList.add('locked'); document.getElementById('postBtn').disabled = true;
+  }
+  function openSheet() { resetSheet(); sheet.classList.add('open'); scrim.classList.add('open'); }
+  function closeSheet() { sheet.classList.remove('open'); scrim.classList.remove('open'); }
+  document.getElementById('plusBtn').addEventListener('click', openSheet);
+  document.getElementById('cancelPost').addEventListener('click', closeSheet);
+  scrim.addEventListener('click', closeSheet);
+  function verify() {
+    document.getElementById('proofBtns').hidden = true; document.getElementById('scanning').hidden = false;
+    setTimeout(function () {
+      document.getElementById('scanning').hidden = true; document.getElementById('okReceipt').hidden = false;
+      document.getElementById('stepWrite').classList.remove('locked'); document.getElementById('postBtn').disabled = false;
+    }, 1200);
+  }
+  document.getElementById('scanBtn').addEventListener('click', verify);
+  document.getElementById('emailBtn').addEventListener('click', verify);
+  document.getElementById('postBtn').addEventListener('click', function () {
+    var text = document.getElementById('postText').value.trim() || 'First impressions coming soon.';
+    if (!newPostAdded) {
+      POSTS.unshift({ id: 'mine', mine: true, name: 'Ngoc L.', ini: 'NL', color: '#E9E2FF', owned: 2, time: 'now', streak: me.streak,
+        product: 'FrostFlask 40 oz Tumbler', store: 'Walmart', price: '$29', img: 'tumbler', bg: 'linear-gradient(160deg,#E2F4FC,#A9DDF2)',
+        hype: 8.9, real: 8.6, regret: 8, replies: 0, helpful: 0, entries: [{ day: 1, r: chosen, text: text }], due: 'Day 30 update due Dec 10',
+        qa: [], canned: { 'Is it worth $29?': 'So far yes. Check my day 30 update.', 'Does it leak?': 'Not yet. I will report back.', 'Which color?': 'I got the blue one.' } });
+      newPostAdded = true; me.buys += 1;
+    }
+    closeSheet(); currentFeed = 'foryou';
+    document.querySelectorAll('#feedTabs button').forEach(function (x) { x.setAttribute('aria-selected', String(x.dataset.feed === 'foryou')); });
+    go('home');
+    toast('Posted. Premium is on for 30 days. We will remind you on day 30.');
+  });
+
+  /* ================= Reset: double-tap the logo ================= */
+  document.getElementById('logo').addEventListener('dblclick', function () {
+    askTimers.forEach(clearTimeout); askTimers = [];
+    POSTS = freshData(); me = { streak: 12, helpful: 48, buys: 6, goal: 50 }; newPostAdded = false;
+    currentFeed = 'foryou'; openId = null;
+    document.querySelectorAll('#feedTabs button').forEach(function (x) { x.setAttribute('aria-selected', String(x.dataset.feed === 'foryou')); });
+    document.getElementById('actDot').hidden = false; closeSheet(); go('home');
+    toast('Demo reset');
+  });
+  document.getElementById('logo').addEventListener('click', function () { if (currentTab !== 'home') go('home'); });
+
+  go('home');
 })();
 </script>
 </body>
