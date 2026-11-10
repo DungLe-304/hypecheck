@@ -248,6 +248,24 @@ main.with-composer { padding-bottom: calc(150px + env(safe-area-inset-bottom, 0p
 .ok-receipt { display: flex; gap: 10px; align-items: center; background: var(--real-soft); border-radius: 12px; padding: 10px 12px; font-size: 13.5px; }
 .ok-receipt svg { width: 20px; height: 20px; color: var(--real); }
 .ok-receipt b { display: block; }
+.scan-steps { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 7px; }
+.scan-steps li { display: flex; gap: 8px; align-items: center; font-size: 13.5px; color: var(--muted); opacity: .35; transition: opacity .3s, color .3s; }
+.scan-steps li.done { opacity: 1; color: var(--ink); }
+.scan-steps li i { width: 18px; height: 18px; border-radius: 50%; background: var(--line); display: grid; place-items: center; flex: none; transition: background-color .3s; }
+.scan-steps li.done i { background: var(--real); }
+.scan-steps li i svg { width: 11px; height: 11px; color: #fff; }
+.detected { border: 1px solid var(--line); border-radius: 14px; overflow: hidden; }
+.det-top { display: flex; gap: 10px; align-items: center; padding: 10px 12px; }
+.det-top .mini { width: 46px; height: 46px; border-radius: 12px; display: grid; place-items: center; flex: none; }
+.det-top .mini svg { height: 32px; width: auto; }
+.det-top div { min-width: 0; }
+.det-top strong { display: block; font-size: 14px; }
+.det-top span { font-size: 12.5px; color: var(--muted); }
+.det-link { display: flex; align-items: center; gap: 8px; padding: 9px 12px; background: var(--soft); font-size: 13px; }
+.det-link svg { width: 15px; height: 15px; color: var(--muted); }
+.det-link b { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; }
+.auto { font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: var(--real-soft); color: var(--real); flex: none; }
+.det-note { margin: 0; font-size: 12px; color: var(--muted); }
 .step textarea { font: inherit; font-size: 16px; border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; min-height: 84px; resize: none; color: var(--ink); }
 .rate { display: flex; gap: 4px; flex-wrap: wrap; }
 .rate button { width: 32px; height: 32px; border-radius: 9px; background: var(--soft); font-weight: 700; font-size: 13px; }
@@ -338,11 +356,17 @@ main.with-composer { padding-bottom: calc(150px + env(safe-area-inset-bottom, 0p
       <button type="button" id="scanBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"/><path d="M9 8h6M9 12h6"/></svg>Scan receipt</button>
       <button type="button" id="emailBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>Forward order email</button>
     </div>
-    <div class="scanning" id="scanning" hidden><span class="spin"></span>Reading your receipt...</div>
-    <div class="ok-receipt" id="okReceipt" hidden>
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="m7.5 12 3 3 6-6"/></svg>
-      <span><b>Verified: FrostFlask 40 oz Tumbler</b>Walmart &middot; $29 &middot; bought Nov 8</span>
+    <ul class="scan-steps" id="scanSteps" hidden>
+      <li><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5 9-10"/></svg></i>Receipt read: Walmart &middot; Nov 8 &middot; $29.00</li>
+      <li><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5 9-10"/></svg></i>Product matched: FrostFlask 40 oz Tumbler</li>
+      <li><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5 9-10"/></svg></i>Store link added to your post</li>
+    </ul>
+    <div class="detected" id="detected" hidden>
+      <div class="det-top"><span class="mini" style="background:linear-gradient(160deg,#E2F4FC,#A9DDF2)"><svg viewBox="0 0 34 48"><path d="M5 9h24l-3 36a3 3 0 0 1-3 3H11a3 3 0 0 1-3-3z" fill="#6FC3E8"/><rect x="3" y="4" width="28" height="6" rx="2" fill="#151826"/><path d="M29 14h2a4 4 0 0 1 4 4v8a4 4 0 0 1-4 4h-2" fill="none" stroke="#151826" stroke-width="3"/><rect x="21" y="0" width="3" height="6" rx="1" fill="#151826"/></svg></span>
+        <div><strong>FrostFlask 40 oz Tumbler</strong><span>Verified purchase &middot; Walmart &middot; $29</span></div></div>
+      <div class="det-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/></svg><b>walmart.com/ip/frostflask-40-oz-tumbler</b><span class="auto">Auto-added</span></div>
     </div>
+    <p class="det-note" id="detNote" hidden>HypeCheck finds the product on your receipt and adds the store link for you. Every post can be bought from, and reviewers never earn from it.</p>
   </div>
   <div class="step locked" id="stepWrite">
     <h3><i>2</i>Day 1: first impressions</h3>
@@ -662,7 +686,7 @@ main.with-composer { padding-bottom: calc(150px + env(safe-area-inset-bottom, 0p
     rateEl.querySelectorAll('button').forEach(function (x) { x.setAttribute('aria-pressed', String(x === b)); });
   });
   function resetSheet() {
-    document.getElementById('proofBtns').hidden = false; document.getElementById('scanning').hidden = true; document.getElementById('okReceipt').hidden = true;
+    scanTimers.forEach(clearTimeout); scanTimers = []; document.getElementById('proofBtns').hidden = false; ['scanSteps','detected','detNote'].forEach(function (id) { document.getElementById(id).hidden = true; }); document.querySelectorAll('#scanSteps li').forEach(function (li) { li.classList.remove('done'); });
     document.getElementById('stepWrite').classList.add('locked'); document.getElementById('postBtn').disabled = true;
   }
   function openSheet() { resetSheet(); sheet.classList.add('open'); scrim.classList.add('open'); }
@@ -670,12 +694,15 @@ main.with-composer { padding-bottom: calc(150px + env(safe-area-inset-bottom, 0p
   document.getElementById('plusBtn').addEventListener('click', openSheet);
   document.getElementById('cancelPost').addEventListener('click', closeSheet);
   scrim.addEventListener('click', closeSheet);
+  var scanTimers = [];
   function verify() {
-    document.getElementById('proofBtns').hidden = true; document.getElementById('scanning').hidden = false;
-    setTimeout(function () {
-      document.getElementById('scanning').hidden = true; document.getElementById('okReceipt').hidden = false;
+    document.getElementById('proofBtns').hidden = true; document.getElementById('scanSteps').hidden = false;
+    var lis = document.querySelectorAll('#scanSteps li');
+    lis.forEach(function (li, i) { scanTimers.push(setTimeout(function () { li.classList.add('done'); }, 450 * (i + 1))); });
+    scanTimers.push(setTimeout(function () {
+      document.getElementById('detected').hidden = false; document.getElementById('detNote').hidden = false;
       document.getElementById('stepWrite').classList.remove('locked'); document.getElementById('postBtn').disabled = false;
-    }, 1200);
+    }, 1550));
   }
   document.getElementById('scanBtn').addEventListener('click', verify);
   document.getElementById('emailBtn').addEventListener('click', verify);
